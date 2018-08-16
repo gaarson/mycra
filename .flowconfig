@@ -1,0 +1,23 @@
+[ignore]
+
+[include]
+.*/app/.*
+
+[libs]
+./app/interfaces/index.js
+
+[lints]
+
+[options]
+module.system=haste
+esproposal.export_star_as=enable
+
+module.name_mapper='.*\(.styl\)' -> 'StylusModule'
+module.name_mapper='^api\(.*\)$' -> '<PROJECT_ROOT>/app/api/\1'
+module.name_mapper='^components\(.*\)$' -> '<PROJECT_ROOT>/app/components/\1'
+module.name_mapper='^pages\(.*\)$' -> '<PROJECT_ROOT>/app/pages/\1'
+module.name_mapper='^containers\(.*\)$' -> '<PROJECT_ROOT>/app/containers/\1'
+module.name_mapper='^stores\(.*\)$' -> '<PROJECT_ROOT>/app/stores/\1'
+module.name_mapper='^utils\(.*\)$' -> '<PROJECT_ROOT>/app/utils/\1'
+module.name_mapper='^serializers\(.*\)$' -> '<PROJECT_ROOT>/app/serializers/\1'
+module.name_mapper='^types\(.*\)$' -> '<PROJECT_ROOT>/app/types/\1'
