@@ -1,11 +1,16 @@
+const express = require('express');
+const path = require('path');
 const dir = require('./paths');
 
 module.exports = {
-  hot: true,
-  contentBase: dir.dist,
+  contentBase: path.resolve(dir.root, 'dist', 'webpack'),
+  publicPath: '/',
   compress: true,
+  hot: true,
   historyApiFallback: true,
-  headers: {
-    'Access-control-allow-origin': '*',
+  open: true,
+  stats: {
+    colors: true,
   },
 };
+

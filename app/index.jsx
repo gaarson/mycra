@@ -1,9 +1,0 @@
-import React from 'react';
-import { render } from 'react-dom';
-
-import App from 'components/App';
-
-render(
-  <App text="test text" />,
-  document.getElementById('root'),
-);

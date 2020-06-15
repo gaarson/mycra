@@ -1,28 +1,34 @@
 const path = require('path');
+const paths = require('./config/paths');
+const args = require('./utils/args');
 
 module.exports = {
+  rootDir: paths.root,
   collectCoverageFrom: [
-    path.join(__dirname, 'app/**/*.{js,jsx}'),
+    `**/*.{${args.language}?(x)}`,
   ],
   transformIgnorePatterns: [
     '[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$',
+    '[/\\\\]node_modules[/\\\\].+\\.(ts|tsx)$',
   ],
-  transform: {
-    '^.+\\.(js|jsx)$': 'babel-jest',
-    '^.+\\.css$': './config/jest/css.js',
-    '^(?!.*\\.(js|jsx|css|json)$)': './config/jest/file.js',
-  },
+   transform: {
+    '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
+    '^.+\\.(js|jsx)$': require.resolve('babel-jest'),
+     '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
+    '^(?!.*\\.(js|jsx|css|json)$)': `${path.join(__dirname, '/config')}/jest/file.js`,
+   },
   testURL: 'http://localhost',
-  setupTestFrameworkScriptFile: path.join(__dirname, 'app/setupTests.js'),
-  browser: true,
+  setupFilesAfterEnv: [`./${args.path}/setupTests.js`],
   testMatch: [
-    path.join(__dirname, 'app/**/__tests__/**/*.js?(x)'),
-    path.join(__dirname, 'app/**/?(*.)(spec|test).js?(x)'),
+    `**/__tests__/**/*.${args.language}?(x)`,
+    `**/?(*.)(spec|test).${args.language}?(x)`,
   ],
   moduleFileExtensions: [
     'web.js',
     'js',
     'jsx',
+    'ts',
+    'tsx',
     'json',
     'web.jsx',
     'node',
