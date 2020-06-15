@@ -1,35 +1,23 @@
 /* eslint-disable import/no-extraneous-dependencies */
-
-process.env.BABEL_ENV = 'development';
-process.env.NODE_ENV = 'development';
-
 const webpack = require('webpack');
 const WebpackDevServer = require('webpack-dev-server');
+const { DEFAULT_PORT, DEFAULT_HOST } = require('../constants');
 const dir = require('../config/paths.js');
+
 require('dotenv').config({
   path: dir.env,
 });
 
-const { HOST, DEV_PORT } = process.env;
+const HOST = process.env.HOST || DEFAULT_HOST;
+const PORT = process.env.PORT || DEFAULT_PORT;
 
-const devConfig = require('../config/webpack.config.dev');
+const devConfig = require('../config/webpack.config');
+const devServerConfig = require('../config/webpackDevServer.config');
 
 const compiler = webpack(devConfig);
-const devServer = new WebpackDevServer(compiler, {
-  contentBase: dir.dist,
-  hot: true,
-  inline: true,
-  compress: true,
-  historyApiFallback: false,
-  headers: {
-    'Access-control-allow-origin': '*',
-  },
-  stats: {
-    colors: true,
-  },
-});
+const devServer = new WebpackDevServer(compiler, devServerConfig);
 
-devServer.listen(DEV_PORT, HOST, (err) => {
+devServer.listen(PORT, HOST, (err) => {
   if (err) {
     console.log(err);
   }
