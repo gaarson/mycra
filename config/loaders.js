@@ -94,7 +94,7 @@ const loaders = [
         options: {
           runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
           runtimeOptions: {
-            iconModule:`${path.join(__dirname, '..')}/utils/icon.jsx`
+            iconModule:`${path.join(__dirname, '..')}/utils/icon.js`
           }
         }
       },

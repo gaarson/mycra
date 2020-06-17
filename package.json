@@ -1,6 +1,6 @@
 {
-  "name": "mycra",
-  "version": "0.0.1",
+  "name": "our-scripts",
+  "version": "0.1.0",
   "description": "build my react projects",
   "main": "index.js",
   "bin": "./bin/mycra.js",
@@ -8,15 +8,9 @@
   "license": "ISC",
   "dependencies": {
     "react": "^16.13.1",
-    "typescript": "^3.9.3"
-  },
-  "peerDependencies": {
-    "react": "^16.13.1",
-    "react-dom": "^16.13.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.10.2",
+    "typescript": "^3.9.3",
     "@babel/polyfill": "^7.10.1",
+    "@babel/core": "^7.10.2",
     "@babel/preset-env": "^7.10.2",
     "@babel/preset-react": "^7.10.1",
     "@babel/preset-typescript": "^7.10.1",
@@ -40,6 +34,14 @@
     "webpack": "^4.43.0",
     "webpack-bundle-analyzer": "^3.8.0",
     "webpack-dev-server": "^3.11.0"
+  },
+  "peerDependencies": {
+    "react": "^16.13.1",
+    "react-dom": "^16.13.1"
+  },
+  "devDependencies": {
+    "parcel-bundler": "^1.12.4",
+    "webpack-cli": "^4.0.0-beta.2"
   },
   "babel": {
     "presets": [
