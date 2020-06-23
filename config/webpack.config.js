@@ -22,7 +22,7 @@ module.exports = {
     modules: [
       'node_modules', 
       dir.app, 
-      dir.public
+      dir.public,
     ],
     extensions: [
       '.tsx', 

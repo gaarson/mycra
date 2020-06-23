@@ -4,6 +4,8 @@
 !_TAG_PROGRAM_NAME	Exuberant Ctags	//
 !_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
 !_TAG_PROGRAM_VERSION	5.8	//
+Icon.defaultProps.className	utils/icon.js	/^  className: 'icon'$/;"	p
+Icon.defaultProps.glyph	utils/icon.js	/^  glyph: '',$/;"	p
 module.exports	utils/svg-to-icon-component-runtime-generator.js	/^module.exports = function runtimeGenerator({ symbol, config, context, loaderContext }) {$/;"	f
 module.exports.app	config/paths.js	/^  app: path.join(root, args.path || 'app'),$/;"	p
 module.exports.contentBase	config/webpackDevServer.config.js	/^  contentBase: path.resolve(dir.root, 'dist', 'webpack'),$/;"	p
