@@ -12,8 +12,8 @@ module.exports = {
     '[/\\\\]node_modules[/\\\\].+\\.(ts|tsx)$',
   ],
   transform: {
-    '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
     '^.+\\.(js|jsx)$': require.resolve('babel-jest'),
+    '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
     '^.+\\.svg$': require.resolve("jest-svg-transformer"),
     '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^(?!.*\\.(js|jsx|css|json)$)': `${path.join(__dirname, '/config')}/jest/file.js`,
