@@ -1,5 +1,6 @@
 const path = require('path');
 const dir = require('./paths');
+const buildMode = require('./buildMode');
 
 const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
 
@@ -12,6 +13,10 @@ const getThreadLoader = name => ({
   },
 });
 
+const cssModulesScopedName = buildMode.isTest() 
+  ? '[local]' 
+  : '[local]___[hash:base64:5]';
+
 const loaders = [
   {
     exclude: /node_modules/,
@@ -19,6 +24,23 @@ const loaders = [
     use: [
       {
         loader: require.resolve('babel-loader'),
+        options: {
+          presets: [
+            [
+              require.resolve("@babel/preset-env"),
+              { modules: false },
+            ],
+            require.resolve("@babel/preset-react"),
+          ],
+          plugins: [
+            [
+              require.resolve("babel-plugin-react-css-modules"),
+              {
+                generateScopedName: cssModulesScopedName,
+              }
+            ]
+          ]
+        }
       },
       {
         loader: require.resolve('ts-loader'),
@@ -65,7 +87,9 @@ const loaders = [
       {
         loader: require.resolve('css-loader'),
         options: {
-          modules: true,
+          modules: {
+	          localIdentName: cssModulesScopedName,
+	        },
           importLoaders: 1,
         },
       },
@@ -94,7 +118,7 @@ const loaders = [
         options: {
           runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
           runtimeOptions: {
-            iconModule:`${path.join(__dirname, '..')}/utils/icon.jsx`
+            iconModule:`${path.join(__dirname, '..')}/utils/icon.js`
           }
         }
       },

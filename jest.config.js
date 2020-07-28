@@ -11,12 +11,16 @@ module.exports = {
     '[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$',
     '[/\\\\]node_modules[/\\\\].+\\.(ts|tsx)$',
   ],
-   transform: {
-    '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
+  transform: {
     '^.+\\.(js|jsx)$': require.resolve('babel-jest'),
-     '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
+    '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
+    '^.+\\.svg$': require.resolve("jest-svg-transformer"),
+    '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^(?!.*\\.(js|jsx|css|json)$)': `${path.join(__dirname, '/config')}/jest/file.js`,
-   },
+  },
+  moduleNameMapper: {
+    '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.${args.language}`,
+  },
   testURL: 'http://localhost',
   setupFilesAfterEnv: [`./${args.path}/setupTests.js`],
   testMatch: [

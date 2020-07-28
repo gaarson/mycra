@@ -1,5 +1,4 @@
 const path = require('path');
-const { pascalCase } = require('pascal-case');
 const { stringifyRequest } = require('loader-utils');
 const { stringifySymbol, stringify } = require('svg-sprite-loader/lib/utils');
 
@@ -15,7 +14,6 @@ module.exports = function runtimeGenerator({ symbol, config, context, loaderCont
   const spriteRequest = stringifyRequest({ context }, spriteModule);
   const symbolRequest = stringifyRequest({ context }, symbolModule);
   const parentComponentDisplayName = 'SpriteSymbolComponent';
-  const displayName = `${pascalCase(symbol.id)}${parentComponentDisplayName}`;
 
   return `
     import React from 'react';
@@ -25,10 +23,6 @@ module.exports = function runtimeGenerator({ symbol, config, context, loaderCont
     
     const symbol = new SpriteSymbol(${stringifySymbol(symbol)});
     sprite.add(symbol);
-    export default class ${displayName} extends React.Component {
-      render() {
-        return <${parentComponentDisplayName} glyph="${symbol.id}" {...this.props} />;
-      }
-    }
+    export default (props) => <${parentComponentDisplayName} glyph="${symbol.id}" {...props} />;
   `;
 };

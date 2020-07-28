@@ -1,6 +1,8 @@
 .idea
 .vscode
 *.code-workspace
+/.cache
+tags
 
 # dependencies
 /node_modules
