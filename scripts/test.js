@@ -19,6 +19,4 @@ if (!args.ci && !args.coverage) {
   preparedArgv.push('--watch');
 }
 
-console.log(preparedArgv);
-
 jest.run(preparedArgv);

@@ -1,6 +1,7 @@
 const path = require('path');
 const dir = require('./paths');
 const buildMode = require('./buildMode');
+const babelOptions = require('../babel.config');
 
 const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
 
@@ -24,23 +25,7 @@ const loaders = [
     use: [
       {
         loader: require.resolve('babel-loader'),
-        options: {
-          presets: [
-            [
-              require.resolve("@babel/preset-env"),
-              { modules: false },
-            ],
-            require.resolve("@babel/preset-react"),
-          ],
-          plugins: [
-            [
-              require.resolve("babel-plugin-react-css-modules"),
-              {
-                generateScopedName: cssModulesScopedName,
-              }
-            ]
-          ]
-        }
+        options: babelOptions,
       },
       {
         loader: require.resolve('ts-loader'),

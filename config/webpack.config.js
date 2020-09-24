@@ -8,7 +8,7 @@ const devtoolDev = process.env.npm_config_sourcemaps ? 'inline-source-map' : 'in
 module.exports = {
   mode: buildMode.type,
   devtool: buildMode.isDevelop ? devtoolDev : undefined,
-  entry: dir.app,
+  entry: [require.resolve('@babel/polyfill'), dir.app],
   output: {
     path: dir.dist,
     filename: './js/[name].[hash:8].js',

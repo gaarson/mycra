@@ -2,6 +2,8 @@ const path = require('path');
 const paths = require('./config/paths');
 const args = require('./utils/args');
 
+const buildMode = require('./config/buildMode');
+
 module.exports = {
   rootDir: paths.root,
   collectCoverageFrom: [
@@ -12,11 +14,19 @@ module.exports = {
     '[/\\\\]node_modules[/\\\\].+\\.(ts|tsx)$',
   ],
   transform: {
-    '^.+\\.(js|jsx)$': require.resolve('babel-jest'),
+    '^.+\\.(js|jsx|ts|tsx)$': [
+      require.resolve('babel-jest'), 
+      { configFile: `${path.join(__dirname, '/')}babel.config.js` }
+    ],
     '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
-    '^.+\\.svg$': require.resolve("jest-svg-transformer"),
+    '^.+\\.svg$': require.resolve('jest-svg-transformer'),
     '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^(?!.*\\.(js|jsx|css|json)$)': `${path.join(__dirname, '/config')}/jest/file.js`,
+  },
+  globals: {
+    "ts-jest": {
+      tsConfig: `${paths.root}/tsconfig.jest.json`,
+    }
   },
   moduleNameMapper: {
     '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.${args.language}`,
