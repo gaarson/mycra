@@ -15,8 +15,14 @@ preparedArgv.push(`${path.join(__dirname, '..')}/jest.config.js`);
 
 
 // Watch unless on CI or in coverage mode
-if (!args.ci && !args.coverage) {
+if (!args.ci && !args.coverage && !args.precommit) {
   preparedArgv.push('--watch');
+}
+if (args.coverage) {
+  preparedArgv.push('--coverage');
+}
+if (args.precommit) {
+  preparedArgv.push('--findRelatedTests');
 }
 
 jest.run(preparedArgv);

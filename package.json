@@ -1,6 +1,6 @@
 {
   "name": "our-scripts",
-  "version": "0.2.2",
+  "version": "0.2.6",
   "description": "build my react projects",
   "main": "index.js",
   "bin": "./bin/mycra.js",
@@ -8,6 +8,8 @@
   "license": "ISC",
   "dependencies": {
     "@babel/core": "^7.10.2",
+    "@babel/plugin-transform-modules-commonjs": "^7.10.4",
+    "@babel/plugin-transform-runtime": "^7.11.5",
     "@babel/polyfill": "^7.10.1",
     "@babel/preset-env": "^7.10.2",
     "@babel/preset-react": "^7.10.1",
@@ -30,6 +32,7 @@
     "pascal-case": "^3.1.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "source-map-support": "^0.5.19",
     "style-loader": "^1.2.1",
     "svg-sprite-loader": "^5.0.0",
     "thread-loader": "^2.1.3",
@@ -39,8 +42,7 @@
     "url-loader": "^4.1.0",
     "webpack": "^4.43.0",
     "webpack-bundle-analyzer": "^3.8.0",
-    "webpack-dev-server": "^3.11.0",
-    "@babel/plugin-transform-modules-commonjs": "^7.10.4"
+    "webpack-dev-server": "^3.11.0"
   },
   "peerDependencies": {
     "react": "^16.13.1",

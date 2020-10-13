@@ -9,6 +9,10 @@ module.exports = {
   collectCoverageFrom: [
     `**/*.{${args.language}?(x)}`,
   ],
+  moduleDirectories: [
+    'node_modules',
+    paths.app,
+  ],
   transformIgnorePatterns: [
     '[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$',
     '[/\\\\]node_modules[/\\\\].+\\.(ts|tsx)$',

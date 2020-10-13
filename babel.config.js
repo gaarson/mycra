@@ -15,6 +15,7 @@ module.exports = {
   ],
   plugins: [
     require.resolve("@babel/plugin-transform-modules-commonjs"),
+    require.resolve("@babel/plugin-transform-runtime"),
     [
       require.resolve("babel-plugin-react-css-modules"),
       {
