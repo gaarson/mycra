@@ -21,8 +21,5 @@ if (!args.ci && !args.coverage && !args.precommit) {
 if (args.coverage) {
   preparedArgv.push('--coverage');
 }
-if (args.precommit) {
-  preparedArgv.push('--findRelatedTests');
-}
 
 jest.run(preparedArgv);

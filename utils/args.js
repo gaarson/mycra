@@ -14,7 +14,6 @@ const argsDefinitions = [
   { name: 'expensive', alias: 'e', type: Boolean },
   { name: 'coverage', alias: 'c', type: Boolean },
   { name: 'ci', type: Boolean },
-  { name: 'precommit', type: Boolean },
 ];
 
 const result = {};
