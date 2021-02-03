@@ -7,9 +7,7 @@ const argsDefinitions = [
   {
     name: 'language', alias: 'l', type: String, default: 'ts',
   },
-  {
-    name: 'language', alias: 'l', type: String, default: 'ts',
-  },
+  { name: 'library', alias: 'lib', type: String, default: 'react' },
   { name: 'size', alias: 's', type: Boolean },
   { name: 'expensive', alias: 'e', type: Boolean },
   { name: 'coverage', alias: 'c', type: Boolean },

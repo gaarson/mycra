@@ -1,6 +1,8 @@
 const webpack = require('webpack');
 const dir = require('../config/paths.js');
 
+console.log('HERE');
+
 require('dotenv').config({ path: dir.env });
 
 const prodConfig = require('../config/webpack.config');

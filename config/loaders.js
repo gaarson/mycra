@@ -2,6 +2,7 @@ const path = require('path');
 const dir = require('./paths');
 const buildMode = require('./buildMode');
 const babelOptions = require('../babel.config');
+const args = require('../utils/args');
 
 const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
 
@@ -17,6 +18,72 @@ const getThreadLoader = name => ({
 const cssModulesScopedName = buildMode.isTest() 
   ? '[local]' 
   : '[local]___[hash:base64:5]';
+
+const glimmerLoaders = [
+  {
+    exclude: /node_modules/,
+    test: /\.ts(x?)$/,
+    use: [
+      {
+        loader: require.resolve('babel-loader'),
+        options: babelOptions,
+      },
+      {
+        loader: require.resolve('ts-loader'),
+      },
+    ],
+  },
+  {
+    test: /\.css$/,
+    use: [
+      {
+        loader: require.resolve('style-loader'),
+        options: {
+          esModule: true,
+        },
+      },
+      {
+        loader: require.resolve('css-loader'),
+        options: {
+          modules: {
+	          localIdentName: cssModulesScopedName,
+	        },
+          importLoaders: 1,
+        },
+      },
+    ],
+  },
+  // {
+  //   test: /\.svg$/,
+  //   use: [
+  //     {
+  //       loader: require.resolve('babel-loader'),
+  //       options: {
+  //         presets: [
+  //           require.resolve("@babel/preset-react"),
+  //         ],
+  //       },
+  //     },
+  //     { 
+  //       loader: require.resolve('svg-sprite-loader'),
+  //       options: {
+  //         runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
+  //         runtimeOptions: {
+  //           iconModule:`${path.join(__dirname, '..')}/utils/icon.js`
+  //         }
+  //       }
+  //     },
+  //   ]
+  // },
+  {
+    test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+    loader: require.resolve('url-loader'),
+    options: {
+      limit: 10000,
+      name: 'img/[name].[hash:8].[ext]',
+    },
+  },
+]
 
 const loaders = [
   {
@@ -119,5 +186,5 @@ const loaders = [
   },
 ];
 
-module.exports = loaders;
+module.exports = args.library === 'react' ? loaders : glimmerLoaders;
 
