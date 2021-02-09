@@ -1,18 +1,12 @@
 const args = process.argv.slice(2);
 
 const argsDefinitions = [
-  {
-    name: 'path', alias: 'p', type: String, default: 'app',
-  },
-  {
-    name: 'language', alias: 'l', type: String, default: 'ts',
-  },
-  {
-    name: 'language', alias: 'l', type: String, default: 'ts',
-  },
+  { name: 'path', alias: 'p', type: String, default: 'app' },
+  { name: 'language', alias: 'l', type: String, default: 'ts' },
   { name: 'size', alias: 's', type: Boolean },
   { name: 'expensive', alias: 'e', type: Boolean },
   { name: 'coverage', alias: 'c', type: Boolean },
+  { name: 'devServer', alias: 'ds', type: Boolean },
   { name: 'ci', type: Boolean },
 ];
 

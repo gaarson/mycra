@@ -16,7 +16,16 @@ const getThreadLoader = name => ({
 
 const cssModulesScopedName = buildMode.isTest() 
   ? '[local]' 
-  : '[local]___[hash:base64:5]';
+  : '[local]___[hash:base64:7]';
+
+const cacheLoader = (type) => {
+  return {
+    loader: require.resolve('cache-loader'),
+    options: {
+      cacheDirectory: path.resolve(cacheDir, type),
+    }
+  };
+};
 
 const loaders = [
   {
@@ -30,12 +39,7 @@ const loaders = [
       {
         loader: require.resolve('ts-loader'),
       },
-      {
-        loader: require.resolve('cache-loader'),
-        options: {
-          cacheDirectory: path.resolve(cacheDir, 'ts'),
-        },
-      },
+      cacheLoader('ts'),
       getThreadLoader('ts'),
     ],
   },
@@ -51,39 +55,25 @@ const loaders = [
           ],
         },
       },
-      {
-        loader: require.resolve('cache-loader'),
-        options: {
-          cacheDirectory: path.resolve(cacheDir, 'js'),
-        },
-      },
+      cacheLoader('js'),
       getThreadLoader('js'),
     ],
   },
   {
-    test: /\.css$/,
+    test: /\.(s?)css$/,
     use: [
-      {
-        loader: require.resolve('style-loader'),
-        options: {
-          esModule: true,
-        },
-      },
+      require.resolve('style-loader'),
       {
         loader: require.resolve('css-loader'),
         options: {
+          sourceMap: buildMode.isDevelop(),
           modules: {
-	          localIdentName: cssModulesScopedName,
-	        },
-          importLoaders: 1,
+            localIdentName: cssModulesScopedName,
+          },
         },
       },
-      {
-        loader: require.resolve('cache-loader'),
-        options: {
-          cacheDirectory: path.resolve(cacheDir, 'css'),
-        },
-      },
+      require.resolve('sass-loader'),
+      cacheLoader('css'),
       getThreadLoader('css'),
     ],
   },
