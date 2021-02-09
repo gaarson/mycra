@@ -1,7 +1,7 @@
 /* eslint-disable import/no-extraneous-dependencies */
 const path = require('path');
 const args = require('../utils/args');
-const paths = require('../config/paths');
+// const paths = require('../config/paths');
 
 const jest = require('jest');
 

@@ -2,7 +2,7 @@ const buildMode = require('./config/buildMode');
 
 const cssModulesScopedName = buildMode.isTest() 
   ? '[local]' 
-  : '[local]___[hash:base64:5]';
+  : '[local]___[hash:base64:7]';
 
 module.exports = {
   presets: [
@@ -19,6 +19,11 @@ module.exports = {
     [
       require.resolve("babel-plugin-react-css-modules"),
       {
+        "filetypes": {
+          '.scss': {
+            syntax: require.resolve('postcss-scss')
+          }
+        },
         generateScopedName: cssModulesScopedName,
         autoResolveMultipleImports: true
       }
