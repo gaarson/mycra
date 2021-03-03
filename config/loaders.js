@@ -60,7 +60,24 @@ const loaders = [
     ],
   },
   {
-    test: /\.(s?)css$/,
+    test: /\.css$/,
+    use: [
+      require.resolve('style-loader'),
+      {
+        loader: require.resolve('css-loader'),
+        options: {
+          sourceMap: buildMode.isDevelop(),
+          modules: {
+            localIdentName: cssModulesScopedName,
+          },
+        },
+      },
+      cacheLoader('css'),
+      getThreadLoader('css'),
+    ],
+  },
+  {
+    test: /\.s[ac]ss$/i,
     use: [
       require.resolve('style-loader'),
       {
@@ -73,8 +90,8 @@ const loaders = [
         },
       },
       require.resolve('sass-loader'),
-      cacheLoader('css'),
-      getThreadLoader('css'),
+      cacheLoader('sass'),
+      getThreadLoader('sass'),
     ],
   },
   {
