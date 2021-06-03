@@ -41,7 +41,7 @@ if (!args.devServer) {
     if (err || stats.hasErrors()) {
       console.error('error', stats.compilation.errors);
     }
-    console.log(stats);
+    console.log(stats.toString());
   });
 }
 

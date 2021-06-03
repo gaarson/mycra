@@ -7,17 +7,26 @@ const argsDefinitions = [
   { name: 'expensive', alias: 'e', type: Boolean },
   { name: 'coverage', alias: 'c', type: Boolean },
   { name: 'devServer', alias: 'ds', type: Boolean },
+  { name: 'clear', alias: 'cl', type: Boolean },
+  { name: 'source-map', alias: 'sm', type: Boolean },
   { name: 'ci', type: Boolean },
 ];
 
 const result = {};
 
+const removeTires = (str) => str ? str.replace('-', '').replace('-', '') : null;
+
 argsDefinitions.forEach((def) => {
   result[def.name] = def.default;
+
   const arg = args.findIndex((item) => {
+    const argument = removeTires(item);
     const nameRegex = new RegExp(`(?!-+)(${def.name})(?!==)`);
     const aliasRegex = new RegExp(`(^-)(${def.alias})`);
-    return nameRegex.test(item) || aliasRegex.test(item);
+    const name = removeTires(item.match(nameRegex) ? item.match(nameRegex)[0] : null);
+    const alias = removeTires(item.match(aliasRegex) ? item.match(aliasRegex)[0] : null);
+
+    return name === argument || alias === argument;
   });
 
   if (args[arg]) {

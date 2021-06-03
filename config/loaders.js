@@ -60,22 +60,62 @@ const loaders = [
     ],
   },
   {
-    test: /\.(s?)css$/,
-    use: [
-      require.resolve('style-loader'),
+    test: /\.css$/,
+    oneOf: [
       {
-        loader: require.resolve('css-loader'),
-        options: {
-          sourceMap: buildMode.isDevelop(),
-          modules: {
-            localIdentName: cssModulesScopedName,
-          },
-        },
+        resourceQuery: /^\?raw$/,
+        use: [
+            require.resolve('style-loader'),
+            require.resolve('css-loader')
+        ]
       },
-      require.resolve('sass-loader'),
-      cacheLoader('css'),
-      getThreadLoader('css'),
-    ],
+      {
+        use: [
+          require.resolve('style-loader'),
+          {
+            loader: require.resolve('css-loader'),
+            options: {
+              sourceMap: buildMode.isDevelop(),
+              modules: {
+                localIdentName: cssModulesScopedName,
+              },
+            },
+          },
+          cacheLoader('css'),
+          getThreadLoader('css'),
+        ],
+      }
+    ]
+  },
+  {
+    test: /\.s[ac]ss$/i,
+    oneOf: [
+      {
+        resourceQuery: /^\?raw$/,
+        use: [
+            require.resolve('style-loader'),
+            require.resolve('css-loader'),
+            require.resolve('sass-loader'),
+        ]
+      },
+      {
+        use: [
+          require.resolve('style-loader'),
+          {
+            loader: require.resolve('css-loader'),
+            options: {
+              sourceMap: buildMode.isDevelop(),
+              modules: {
+                localIdentName: cssModulesScopedName,
+              },
+            },
+          },
+          require.resolve('sass-loader'),
+          cacheLoader('sass'),
+          getThreadLoader('sass'),
+        ],
+      }
+    ]
   },
   {
     test: /\.svg$/,
