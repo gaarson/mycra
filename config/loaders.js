@@ -61,38 +61,61 @@ const loaders = [
   },
   {
     test: /\.css$/,
-    use: [
-      require.resolve('style-loader'),
+    oneOf: [
       {
-        loader: require.resolve('css-loader'),
-        options: {
-          sourceMap: buildMode.isDevelop(),
-          modules: {
-            localIdentName: cssModulesScopedName,
-          },
-        },
+        resourceQuery: /^\?raw$/,
+        use: [
+            require.resolve('style-loader'),
+            require.resolve('css-loader')
+        ]
       },
-      cacheLoader('css'),
-      getThreadLoader('css'),
-    ],
+      {
+        use: [
+          require.resolve('style-loader'),
+          {
+            loader: require.resolve('css-loader'),
+            options: {
+              sourceMap: buildMode.isDevelop(),
+              modules: {
+                localIdentName: cssModulesScopedName,
+              },
+            },
+          },
+          cacheLoader('css'),
+          getThreadLoader('css'),
+        ],
+      }
+    ]
   },
   {
     test: /\.s[ac]ss$/i,
-    use: [
-      require.resolve('style-loader'),
+    oneOf: [
       {
-        loader: require.resolve('css-loader'),
-        options: {
-          sourceMap: buildMode.isDevelop(),
-          modules: {
-            localIdentName: cssModulesScopedName,
-          },
-        },
+        resourceQuery: /^\?raw$/,
+        use: [
+            require.resolve('style-loader'),
+            require.resolve('css-loader'),
+            require.resolve('sass-loader'),
+        ]
       },
-      require.resolve('sass-loader'),
-      cacheLoader('sass'),
-      getThreadLoader('sass'),
-    ],
+      {
+        use: [
+          require.resolve('style-loader'),
+          {
+            loader: require.resolve('css-loader'),
+            options: {
+              sourceMap: buildMode.isDevelop(),
+              modules: {
+                localIdentName: cssModulesScopedName,
+              },
+            },
+          },
+          require.resolve('sass-loader'),
+          cacheLoader('sass'),
+          getThreadLoader('sass'),
+        ],
+      }
+    ]
   },
   {
     test: /\.svg$/,

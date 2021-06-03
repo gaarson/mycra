@@ -1,6 +1,6 @@
 {
   "name": "our-scripts",
-  "version": "0.2.75",
+  "version": "0.2.91",
   "description": "build my react projects",
   "main": "index.js",
   "bin": "./bin/mycra.js",
@@ -50,7 +50,7 @@
     "webpack-dev-server": "^3.11.0"
   },
   "peerDependencies": {
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react": "^16.8.5 || ^17.0.0 || ^17.0.1",
+    "react-dom": "^16.8.5 || ^17.0.0 || ^17.0.1"
   }
 }

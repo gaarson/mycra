@@ -6,6 +6,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 const { APP_ENV_KEY } = require('../constants');
+const args = require('../utils/args');
 const buildMode = require('./buildMode');
 const dir = require('./paths');
 
@@ -40,10 +41,9 @@ if (buildMode.isBundleSize()) {
   ];
 }
 
-if (buildMode.isTest() || buildMode.isProduct()) {
+if (buildMode.isTest() || buildMode.isProduct() || !args.devServer) {
   plugins = [
     ...plugins,
-    new CleanWebpackPlugin(),
     new CopyWebpackPlugin({
       patterns: [
         {
@@ -52,6 +52,13 @@ if (buildMode.isTest() || buildMode.isProduct()) {
         },
       ],
     }),
+  ];
+}
+
+if (args.clear) {
+  plugins = [
+    ...plugins,
+    new CleanWebpackPlugin()
   ];
 }
 
