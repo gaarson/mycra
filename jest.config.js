@@ -1,8 +1,7 @@
 const path = require('path');
 const paths = require('./config/paths');
 const args = require('./utils/args');
-
-const buildMode = require('./config/buildMode');
+const env = require('./config/env');
 
 module.exports = {
   rootDir: paths.root,
@@ -30,12 +29,14 @@ module.exports = {
   globals: {
     "ts-jest": {
       tsConfig: `${paths.root}/tsconfig.jest.json`,
-    }
+    },
+    customEnv: env,
   },
   moduleNameMapper: {
     '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.${args.language}`,
   },
   testURL: 'http://localhost',
+  setupFiles: [`${path.join(__dirname, '/config')}/jest/setupEnv.js`],
   setupFilesAfterEnv: [`./${args.path}/setupTests.js`],
   testMatch: [
     `**/__tests__/**/*.${args.language}?(x)`,

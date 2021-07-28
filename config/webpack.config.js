@@ -14,14 +14,18 @@ if (args['source-map']) {
   devtool = buildMode.isDevelop ? devtoolDev : undefined;
 }
 
+const baseFileName = buildMode.isDevelop() || buildMode.isTest() 
+  ? '[name]' 
+  : '[name].[hash:8]';
+
 module.exports = {
   mode: buildMode.type,
   devtool,
   entry: [require.resolve('@babel/polyfill'), dir.app],
   output: {
     path: dir.dist,
-    filename: './js/[name].[hash:8].js',
-    chunkFilename: './js/[name].[hash:8].chunk.js',
+    filename: `./js/${baseFileName}.js`,
+    chunkFilename: `./js/${baseFileName}.chunk.js`,
     publicPath: '/',
   },
   module: {
