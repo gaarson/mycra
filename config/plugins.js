@@ -5,28 +5,18 @@ const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
-const { APP_ENV_KEY } = require('../constants');
 const args = require('../utils/args');
 const buildMode = require('./buildMode');
 const dir = require('./paths');
-
-const env = Object.keys(process.env)
-  .filter((key) => key.startsWith(APP_ENV_KEY))
-  .reduce((acc, curr) => ({ 
-    ...acc, 
-    [curr.replace(APP_ENV_KEY, '')]: JSON.stringify(process.env[curr]) || '',
-  }), {});
+const env = require('./env');
 
 let plugins = [
-  new webpack.HotModuleReplacementPlugin(),
   new webpack.DefinePlugin({
-    process: {
-      env,
-    },
+    process: { env },
   }),
   new webpack.NamedModulesPlugin(),
   new HtmlWebpackPlugin({
-    template: `public/index.html`,
+    template: `${dir.public}/index.html`,
   }),
   //new webpack.ProvidePlugin({
     //fetch: 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
@@ -41,6 +31,13 @@ if (buildMode.isBundleSize()) {
   ];
 }
 
+if (args.devServer) {
+  plugins = [
+    ...plugins,
+    new webpack.HotModuleReplacementPlugin(),
+  ];
+}
+
 if (buildMode.isTest() || buildMode.isProduct() || !args.devServer) {
   plugins = [
     ...plugins,
@@ -49,6 +46,9 @@ if (buildMode.isTest() || buildMode.isProduct() || !args.devServer) {
         {
           from: `${dir.public}/`,
           to: './',
+          globOptions: {
+            ignore: !args.devServer ? ['**/*.html'] : [],
+          },
         },
       ],
     }),

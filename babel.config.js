@@ -14,6 +14,13 @@ module.exports = {
     require.resolve("@babel/preset-react"),
   ],
   plugins: [
+    [
+      require.resolve("@babel/plugin-proposal-decorators"),
+      { "legacy": true }
+    ],
+    require.resolve("@babel/plugin-proposal-class-properties"),
+    require.resolve("babel-plugin-parameter-decorator"),
+    require.resolve('@babel/plugin-transform-typescript'),
     require.resolve("@babel/plugin-transform-modules-commonjs"),
     require.resolve("@babel/plugin-transform-runtime"),
     [
@@ -29,4 +36,4 @@ module.exports = {
       }
     ]
   ]
-}
+};
