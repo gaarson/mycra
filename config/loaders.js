@@ -2,6 +2,7 @@ const path = require('path');
 const dir = require('./paths');
 const buildMode = require('./buildMode');
 const babelOptions = require('../babel.config');
+const args = require('../utils/args');
 
 const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
 
@@ -27,7 +28,7 @@ const cacheLoader = (type) => {
   };
 };
 
-const loaders = [
+let loaders = [
   {
     exclude: /node_modules/,
     test: /\.ts(x?)$/,
@@ -148,6 +149,16 @@ const loaders = [
     },
   },
 ];
+
+if (args.pwa) {
+  loaders = [
+    ...loaders,
+    {
+      test: [/manifest\.json, sw\.js/],
+      loader: require.resolve('file-loader'),
+    }
+  ];
+}
 
 module.exports = loaders;
 
