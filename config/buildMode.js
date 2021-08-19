@@ -17,4 +17,5 @@ module.exports = {
   isTest() { return mode === undefined || mode === 'test'; },
   isBundleSize() { return args.size },
   isExpensive() { return args.expensive },
+  isServer() { return args.server },
 };
