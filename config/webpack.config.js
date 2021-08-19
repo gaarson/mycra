@@ -11,7 +11,7 @@ let devtool;
 if (args['source-map']) {
   devtool = 'source-map';
 } else {
-  devtool = buildMode.isDevelop ? devtoolDev : undefined;
+  devtool = buildMode.isDevelop() ? devtoolDev : undefined;
 }
 
 const baseFileName = buildMode.isDevelop() || buildMode.isTest() 
