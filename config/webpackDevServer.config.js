@@ -1,9 +1,9 @@
 const express = require('express');
 const path = require('path');
 const dir = require('./paths');
+const args = require('../utils/args');
 
-module.exports = {
-  contentBase: path.resolve(dir.public),
+const config = {
   publicPath: '/',
   compress: true,
   hot: true,
@@ -17,3 +17,8 @@ module.exports = {
   },
 };
 
+config.contentBase = args.pwa
+  ? [path.resolve(dir.public), path.resolve(`${dir.app}/pwa/`)]
+  : path.resolve(dir.public);
+
+module.exports = config;

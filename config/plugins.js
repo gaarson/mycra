@@ -38,20 +38,37 @@ if (args.devServer) {
   ];
 }
 
+let copyPatterns = [];
+
+if (args.pwa) {
+  copyPatterns = [
+    ...copyPatterns,
+    {
+      from: `${dir.app}/pwa/`,
+      to: './'
+    }
+  ];
+}
+
 if (buildMode.isTest() || buildMode.isProduct() || !args.devServer) {
+  copyPatterns = [
+    ...copyPatterns,
+    {
+      from: `${dir.public}/`,
+      to: './',
+      globOptions: {
+        ignore: !args.devServer ? ['**/*.html'] : [],
+      },
+    },
+  ];
+}
+
+if (copyPatterns.length) {
   plugins = [
     ...plugins,
     new CopyWebpackPlugin({
-      patterns: [
-        {
-          from: `${dir.public}/`,
-          to: './',
-          globOptions: {
-            ignore: !args.devServer ? ['**/*.html'] : [],
-          },
-        },
-      ],
-    }),
+      patterns: copyPatterns
+    })
   ];
 }
 
