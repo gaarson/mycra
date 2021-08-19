@@ -28,7 +28,7 @@ const cacheLoader = (type) => {
   };
 };
 
-let loaders = [
+const loaders = [
   {
     exclude: /node_modules/,
     test: /\.ts(x?)$/,
@@ -149,16 +149,6 @@ let loaders = [
     },
   },
 ];
-
-if (args.pwa) {
-  loaders = [
-    ...loaders,
-    {
-      test: [/manifest\.json, sw\.js/],
-      loader: require.resolve('file-loader'),
-    }
-  ];
-}
 
 module.exports = loaders;
 
