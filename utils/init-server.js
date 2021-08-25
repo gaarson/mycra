@@ -1,5 +1,9 @@
 import fs from 'fs';
 import path from 'path';
+import paths from '../config/paths';
+
+const replaceSources = (str = '') => str.replaceAll('/./', '/static/');
+const isProduction = process.env.NODE_ENV === 'production';
 
 export const getListOfStyles = (base, ext, files, result) => {
   files = files || fs.readdirSync(base);
@@ -32,4 +36,41 @@ export const getListOfStyles = (base, ext, files, result) => {
     }
   );
   return result;
+};
+
+export const getHTMLFile = (renderedString, initialState, styles, cssFiles) => {
+  const indexFile = path.join(paths.dist, 'index.html');
+
+  if (!isProduction) {
+    styles = fs.existsSync(cssFiles)
+      ? getListOfStyles(cssFiles, 'css')
+      : [];
+  }
+
+  return new Promise((resolve, reject) => {
+    fs.readFile(indexFile, 'utf8', (err, data) => {
+      if (err) reject(err);
+
+      const links = styles.map(file => {
+        const result = process.platform === 'win32'
+          ? file.substring(file.indexOf('\\css\\') + 5).replaceAll('\\', '/')
+          : file;
+        return `<link rel="stylesheet" type="text/css" href="/static/css/${result}">`;
+      });
+
+      const htmlTemplate = replaceSources(data)
+        .replace(
+          '<div id="root"></div>',
+          `<div id="root">${renderedString}</div>`
+        ).replace(
+          '<script></script>',
+          `<script>${initialState}</script>`
+        ).replace(
+          '<link>',
+          links.join('')
+        );
+
+      resolve(htmlTemplate);
+    });
+  });
 };
