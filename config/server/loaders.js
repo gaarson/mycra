@@ -1,5 +1,6 @@
 const path = require('path');
 const buildMode = require('../buildMode');
+const babelOptions = require('../../babel.serverConfig');
 
 const environment = buildMode.type || 'development';
 const cssLoaderConfig = require('./css-loader')[environment];
@@ -16,6 +17,7 @@ const loaders = [
       {
         loader: 'babel-loader',
         options: {
+          ...babelOptions,
           // babelrc,
           cacheDirectory: true,
           compact: false,

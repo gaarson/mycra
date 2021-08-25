@@ -1,11 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import paths from '../config/paths';
+import { StaticRouterContext } from 'react-router';
+import serialize from 'serialize-javascript';
 
+const cssFiles = path.join(paths.dist, '/css');
 const replaceSources = (str = '') => str.replaceAll('/./', '/static/');
 const isProduction = process.env.NODE_ENV === 'production';
 
-export const getListOfStyles = (base, ext, files, result) => {
+export const getListOfStyles = (base, ext, files?, result?) => {
   files = files || fs.readdirSync(base);
   result = result || [];
 
@@ -38,7 +41,7 @@ export const getListOfStyles = (base, ext, files, result) => {
   return result;
 };
 
-export const getHTMLFile = (renderedString, initialState, styles, cssFiles) => {
+export const getHTMLFile = (renderedString, initialState, styles) => {
   const indexFile = path.join(paths.dist, 'index.html');
 
   if (!isProduction) {
@@ -73,4 +76,36 @@ export const getHTMLFile = (renderedString, initialState, styles, cssFiles) => {
       resolve(htmlTemplate);
     });
   });
+};
+
+export const initServerHandler = (configureStore, renderApp) => {
+  let styles = fs.existsSync(cssFiles)
+    ? getListOfStyles(cssFiles, 'css')
+    : [];
+
+  return async (req, res) => {
+    try {
+      const state = {
+        userReducer: { user: null, error: null },
+      };
+      const store = configureStore(state);
+      const initialState = `
+        window.__INITIAL_STATE__ = ${serialize(store.getState())}
+      `;
+      const context: StaticRouterContext = {};
+  
+      const body = await renderApp(
+        configureStore(state), 
+        context, 
+        req.url
+      );
+  
+      const htmlTemplate = await getHTMLFile(body, initialState, styles);
+  
+      res.send(htmlTemplate);
+    } catch (error) {
+      console.error('error', error);
+      return res.status(500).send('Oops, better luck next time!');
+    }
+  };
 };

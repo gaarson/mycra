@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "baseUrl": "app",
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "allowSyntheticDefaultImports": true,
+    "lib": ["ESNext", "dom"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "downlevelIteration": true,
+    "module": "esNext",
+    "target": "es5",
+    "jsx": "preserve"
+  },
+  "exclude": ["node_modules"]
+}
