@@ -1,7 +1,6 @@
 import fs from 'fs';
 import path from 'path';
 import paths from '../config/paths';
-import { StaticRouterContext } from 'react-router';
 import serialize from 'serialize-javascript';
 
 const cssFiles = path.join(paths.dist, '/css');
@@ -92,7 +91,7 @@ export const initServerHandler = (configureStore, renderApp) => {
       const initialState = `
         window.__INITIAL_STATE__ = ${serialize(store.getState())}
       `;
-      const context: StaticRouterContext = {};
+      const context = {};
   
       const body = await renderApp(
         configureStore(state), 

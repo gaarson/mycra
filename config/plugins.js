@@ -10,6 +10,10 @@ const buildMode = require('./buildMode');
 const dir = require('./paths');
 const env = require('./env');
 
+const manifestLink = args.pwa
+  ? '<link rel="manifest" href="manifest.json">'
+  : '';
+
 let plugins = [
   new webpack.DefinePlugin({
     process: { env },
@@ -17,6 +21,9 @@ let plugins = [
   new webpack.NamedModulesPlugin(),
   new HtmlWebpackPlugin({
     template: `${dir.public}/index.html`,
+    templateParameters: {
+      manifestLink
+    }
   }),
   //new webpack.ProvidePlugin({
     //fetch: 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',

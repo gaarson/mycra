@@ -40,7 +40,6 @@
     "postcss-scss": "^3.0.4",
     "react": "^16.8.5 || ^17.0.0 || ^17.0.1",
     "react-dom": "^16.8.5 || ^17.0.0 || ^17.0.1",
-    "react-router": "^5.2.0",
     "sass": "^1.32.6",
     "sass-loader": "^9.0.3",
     "serialize-javascript": "^6.0.0",
