@@ -24,6 +24,7 @@ module.exports = {
     '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
     '^.+\\.svg$': require.resolve('jest-svg-transformer'),
     '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
+    '^.+\?raw$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^(?!.*\\.(js|jsx|css|json)$)': `${path.join(__dirname, '/config')}/jest/file.js`,
   },
   globals: {
@@ -34,6 +35,7 @@ module.exports = {
   },
   moduleNameMapper: {
     '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.${args.language}`,
+    '^.+\?raw$': require.resolve('jest-raw-loader'),
   },
   testURL: 'http://localhost',
   setupFiles: [`${path.join(__dirname, '/config')}/jest/setupEnv.js`],

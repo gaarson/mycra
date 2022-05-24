@@ -1,6 +1,6 @@
 {
   "name": "our-scripts",
-  "version": "0.3.01",
+  "version": "0.3.97",
   "description": "build my react projects",
   "main": "index.js",
   "bin": "./bin/mycra.js",
@@ -29,14 +29,13 @@
     "copy-webpack-plugin": "^6.0.1",
     "css-loader": "^3.5.3",
     "dotenv": "^8.2.0",
-    "extract-text-webpack-plugin": "^3.0.2",
     "file-loader": "^1.1.11",
     "html-webpack-plugin": "^4.3.0",
     "jest": "^26.1.0",
+    "jest-raw-loader": "^1.0.1",
     "jest-svg-sprite-loader": "^1.0.1",
     "jest-svg-transformer": "^1.0.0",
     "pascal-case": "^3.1.1",
-    "postcss-loader": "^5.0.0",
     "postcss-scss": "^3.0.4",
     "react": "^16.8.5 || ^17.0.0 || ^17.0.1",
     "react-dom": "^16.8.5 || ^17.0.0 || ^17.0.1",
@@ -58,7 +57,7 @@
     "webpackbar": "^5.0.0-3"
   },
   "peerDependencies": {
-    "react": "^16.8.5 || ^17.0.0 || ^17.0.1",
-    "react-dom": "^16.8.5 || ^17.0.0 || ^17.0.1"
+    "react": "^16.8.5 || ^17.0.0 || ^17.0.1 || ^18.0.0 || ^18.1.0",
+    "react-dom": "^16.8.5 || ^17.0.0 || ^17.0.1 || ^18.0.0 || ^18.1.0"
   }
 }
