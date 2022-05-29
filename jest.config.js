@@ -13,8 +13,8 @@ module.exports = {
     paths.app,
   ],
   transformIgnorePatterns: [
-    '[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$',
-    '[/\\\\]node_modules[/\\\\].+\\.(ts|tsx)$',
+    // '[/\\\\]node_modules[/\\\\].+\\.(js|jsx)$',
+    // '[/\\\\]node_modules[/\\\\].+\\.(ts|tsx)$',
   ],
   transform: {
     '^.+\\.(js|jsx|ts|tsx)$': [
@@ -22,7 +22,7 @@ module.exports = {
       { configFile: `${path.join(__dirname, '/')}babel.config.js` }
     ],
     '^.+\\.(ts|tsx)$': require.resolve('ts-jest'),
-    '^.+\\.svg$': require.resolve('jest-svg-transformer'),
+    '^.+\\.svg$': require.resolve('jest-transformer-svg'),
     '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^.+\?raw$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^(?!.*\\.(js|jsx|css|json)$)': `${path.join(__dirname, '/config')}/jest/file.js`,
@@ -37,7 +37,10 @@ module.exports = {
     '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.${args.language}`,
     '^.+\?raw$': require.resolve('jest-raw-loader'),
   },
-  testURL: 'http://localhost',
+  testEnvironment: 'jsdom',
+  testEnvironmentOptions: {
+    url: 'http://localhost',
+  },
   setupFiles: [`${path.join(__dirname, '/config')}/jest/setupEnv.js`],
   setupFilesAfterEnv: [`./${args.path}/setupTests.js`],
   testMatch: [
