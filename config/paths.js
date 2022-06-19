@@ -9,5 +9,6 @@ module.exports = {
   dist: path.join(root, 'dist'),
   js: path.join(root, 'public/static/js'),
   public: path.join(root, 'public'),
+  node_modules: path.join(root, 'node_modules'),
   env: path.join(root, '.env'),
 };

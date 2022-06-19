@@ -2,7 +2,6 @@ const path = require('path');
 const dir = require('./paths');
 const buildMode = require('./buildMode');
 const babelOptions = require('../babel.config');
-const args = require('../utils/args');
 
 const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
 
@@ -14,10 +13,6 @@ const getThreadLoader = name => ({
     name,
   },
 });
-
-const cssModulesScopedName = buildMode.isTest() 
-  ? '[local]' 
-  : '[local]___[hash:base64:7]';
 
 const cacheLoader = (type) => {
   return {
@@ -66,8 +61,8 @@ const loaders = [
       {
         resourceQuery: /^\?raw$/,
         use: [
-            require.resolve('style-loader'),
-            require.resolve('css-loader')
+          require.resolve('style-loader'),
+          require.resolve('css-loader'),
         ]
       },
       {
@@ -76,9 +71,12 @@ const loaders = [
           {
             loader: require.resolve('css-loader'),
             options: {
+              url: false,
               sourceMap: buildMode.isDevelop(),
               modules: {
-                localIdentName: cssModulesScopedName,
+                getLocalIdent: (context, _, localName) => {
+                  return buildMode.simpleClassHash(localName, context.resourcePath);
+                },
               },
             },
           },
@@ -94,9 +92,9 @@ const loaders = [
       {
         resourceQuery: /^\?raw$/,
         use: [
-            require.resolve('style-loader'),
-            require.resolve('css-loader'),
-            require.resolve('sass-loader'),
+          require.resolve('style-loader'),
+          require.resolve('css-loader'),
+          require.resolve('sass-loader'),
         ]
       },
       {
@@ -105,9 +103,12 @@ const loaders = [
           {
             loader: require.resolve('css-loader'),
             options: {
+              url: false,
               sourceMap: buildMode.isDevelop(),
               modules: {
-                localIdentName: cssModulesScopedName,
+                getLocalIdent: (context, _, localName) => {
+                  return buildMode.simpleClassHash(localName, context.resourcePath);
+                },
               },
             },
           },
@@ -133,9 +134,6 @@ const loaders = [
         loader: require.resolve('svg-sprite-loader'),
         options: {
           runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
-          runtimeOptions: {
-            iconModule:`${path.join(__dirname, '..')}/utils/icon.js`
-          }
         }
       },
     ]
