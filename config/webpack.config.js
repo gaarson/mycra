@@ -4,12 +4,12 @@ const buildMode = require('./buildMode');
 const args = require('../utils/args');
 const dir = require('./paths');
 
-const devtoolDev = process.env.npm_config_sourcemaps ? 'inline-source-map' : 'inline-eval';
+const devtoolDev = 'eval-cheap-source-map';
 
 let devtool;
 
 if (args['source-map']) {
-  devtool = 'source-map';
+  devtool = 'inline-source-map';
 } else {
   devtool = buildMode.isDevelop() ? devtoolDev : undefined;
 }
@@ -51,6 +51,7 @@ module.exports = {
   plugins,
   optimization: {
     runtimeChunk: 'multiple',
+    moduleIds: 'named',
     usedExports: true,
     splitChunks: {
       chunks: 'all',

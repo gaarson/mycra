@@ -18,16 +18,12 @@ let plugins = [
   new webpack.DefinePlugin({
     process: { env },
   }),
-  new webpack.NamedModulesPlugin(),
   new HtmlWebpackPlugin({
     template: `${dir.public}/index.html`,
     templateParameters: {
       manifestLink
     }
   }),
-  //new webpack.ProvidePlugin({
-    //fetch: 'imports-loader?this=>global!exports-loader?global.fetch!whatwg-fetch',
-  //}),
   new SpriteLoaderPlugin(),
 ];
 
@@ -73,6 +69,7 @@ if (buildMode.isTest() || buildMode.isProduct() || !args.devServer) {
 if (copyPatterns.length) {
   plugins = [
     ...plugins,
+    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /ru/),
     new CopyWebpackPlugin({
       patterns: copyPatterns
     })

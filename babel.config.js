@@ -1,9 +1,5 @@
 const buildMode = require('./config/buildMode');
 
-const cssModulesScopedName = buildMode.isTest() 
-  ? '[local]' 
-  : '[local]___[hash:base64:7]';
-
 module.exports = {
   presets: [
   [
@@ -18,8 +14,8 @@ module.exports = {
       require.resolve("@babel/plugin-proposal-decorators"),
       { "legacy": true }
     ],
-    require.resolve("@babel/plugin-proposal-class-properties"),
     require.resolve("babel-plugin-parameter-decorator"),
+    require.resolve("@babel/plugin-proposal-class-properties"),
     require.resolve('@babel/plugin-transform-typescript'),
     require.resolve("@babel/plugin-transform-modules-commonjs"),
     require.resolve("@babel/plugin-transform-runtime"),
@@ -31,7 +27,7 @@ module.exports = {
             syntax: require.resolve('postcss-scss')
           }
         },
-        generateScopedName: cssModulesScopedName,
+        generateScopedName: buildMode.simpleClassHash,
         autoResolveMultipleImports: true
       }
     ]
