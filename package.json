@@ -1,6 +1,6 @@
 {
   "name": "our-scripts",
-  "version": "0.4.12",
+  "version": "0.4.13",
   "description": "build my react projects",
   "main": "index.js",
   "bin": "./bin/mycra.js",
