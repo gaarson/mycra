@@ -4,6 +4,7 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
 
 const args = require('../utils/args');
 const buildMode = require('./buildMode');
@@ -24,6 +25,7 @@ let plugins = [
       manifestLink
     }
   }),
+  new NodePolyfillPlugin(),
   new SpriteLoaderPlugin(),
 ];
 

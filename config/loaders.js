@@ -1,42 +1,33 @@
-const path = require('path');
-const dir = require('./paths');
 const buildMode = require('./buildMode');
 const babelOptions = require('../babel.config');
 
-const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
-
-const getThreadLoader = name => ({
+const getThreadLoader = (name, workers = 2) => ({
   loader: require.resolve('thread-loader'),
   options: {
-    workerParallelJobs: 20,
-    poolRespawn: false,
+    workers,
+    workerParallelJobs: 100,
+    poolRespawn: buildMode.isProduct() ? true : false,
+    poolParallelJobs: 100,
     name,
   },
 });
-
-const cacheLoader = (type) => {
-  return {
-    loader: require.resolve('cache-loader'),
-    options: {
-      cacheDirectory: path.resolve(cacheDir, type),
-    }
-  };
-};
 
 const loaders = [
   {
     exclude: /node_modules/,
     test: /\.ts(x?)$/,
     use: [
+      getThreadLoader('ts'),
       {
         loader: require.resolve('babel-loader'),
         options: babelOptions,
       },
       {
         loader: require.resolve('ts-loader'),
+        options: {
+          happyPackMode: true
+        }
       },
-      cacheLoader('ts'),
-      getThreadLoader('ts'),
     ],
   },
   {
@@ -51,8 +42,6 @@ const loaders = [
           ],
         },
       },
-      cacheLoader('js'),
-      getThreadLoader('js'),
     ],
   },
   {
@@ -80,14 +69,20 @@ const loaders = [
               },
             },
           },
-          cacheLoader('css'),
-          getThreadLoader('css'),
         ],
       }
     ]
   },
   {
-    test: /\.s[ac]ss$/i,
+    test: /\.sass$/,
+    use: [
+      require.resolve('style-loader'),
+      require.resolve('css-loader'),
+      require.resolve('sass-loader'),
+    ],
+  },
+  {
+    test: /\.scss$/,
     oneOf: [
       {
         resourceQuery: /^\?raw$/,
@@ -113,29 +108,35 @@ const loaders = [
             },
           },
           require.resolve('sass-loader'),
-          cacheLoader('sass'),
-          getThreadLoader('sass'),
         ],
       }
     ]
   },
   {
     test: /\.svg$/,
-    use: [
+    oneOf: [
       {
-        loader: require.resolve('babel-loader'),
-        options: {
-          presets: [
-            require.resolve("@babel/preset-react"),
-          ],
-        },
+        resourceQuery: /^\?inline$/,
+        loader: require.resolve('url-loader'),
       },
-      { 
-        loader: require.resolve('svg-sprite-loader'),
-        options: {
-          runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
-        }
-      },
+      {
+        use: [
+          {
+            loader: require.resolve('babel-loader'),
+            options: {
+              presets: [
+                require.resolve("@babel/preset-react"),
+              ],
+            },
+          },
+          { 
+            loader: require.resolve('svg-sprite-loader'),
+            options: {
+              runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
+            }
+          },
+        ]
+      }
     ]
   },
   {
