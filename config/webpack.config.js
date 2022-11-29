@@ -1,3 +1,4 @@
+const path = require('path');
 const plugins = require('./plugins');
 const loaders = require('./loaders');
 const buildMode = require('./buildMode');
@@ -5,6 +6,8 @@ const args = require('../utils/args');
 const dir = require('./paths');
 
 const devtoolDev = 'eval-cheap-source-map';
+
+const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
 
 let devtool;
 
@@ -34,9 +37,21 @@ module.exports = {
   resolve: {
     modules: [
       'node_modules', 
-      dir.app, 
       dir.public,
     ],
+    alias: {
+      'src': dir.app,
+      '@': dir.app
+    },
+    fallback: {
+      "fs": false,
+      "os": require.resolve("os-browserify/browser"),
+      "path": require.resolve("path-browserify"),
+      "http": require.resolve("stream-http"),
+      "https": require.resolve("https-browserify"),
+      "buffer": require.resolve("buffer/"),
+      "url": require.resolve("url/")
+    },
     extensions: [
       '.tsx', 
       '.ts', 
@@ -49,6 +64,10 @@ module.exports = {
     ],
   },
   plugins,
+  cache: {
+    type: 'filesystem',
+    cacheDirectory: cacheDir,
+  },
   optimization: {
     runtimeChunk: 'multiple',
     moduleIds: 'named',
