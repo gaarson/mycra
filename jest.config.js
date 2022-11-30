@@ -31,6 +31,7 @@ module.exports = {
     customEnv: env,
   },
   moduleNameMapper: {
+    "@/(.*)": paths.app,
     '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.${args.language}`,
     '^.+\?raw$': require.resolve('jest-raw-loader'),
   },

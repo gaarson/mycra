@@ -116,10 +116,7 @@ const loaders = [
     test: /\.svg$/,
     oneOf: [
       {
-        resourceQuery: /^\?inline$/,
-        loader: require.resolve('url-loader'),
-      },
-      {
+        resourceQuery: /^\?react$/,
         use: [
           {
             loader: require.resolve('babel-loader'),
@@ -136,6 +133,9 @@ const loaders = [
             }
           },
         ]
+      },
+      {
+        loader: require.resolve('url-loader'),
       }
     ]
   },

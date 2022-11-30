@@ -37,6 +37,7 @@ module.exports = {
   resolve: {
     modules: [
       'node_modules', 
+      dir.app,
       dir.public,
     ],
     alias: {
