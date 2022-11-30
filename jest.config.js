@@ -4,6 +4,7 @@ const args = require('./utils/args');
 const env = require('./config/env');
 const babelOptions = require('./babel.config');
 
+console.log('TEST PATH', paths.app);
 module.exports = {
   rootDir: paths.root,
   collectCoverageFrom: [
