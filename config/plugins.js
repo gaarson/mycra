@@ -19,6 +19,10 @@ const manifestLink = args.pwa
 
 let plugins = [
   new webpack.DefinePlugin({ glob: { env } }),
+  new webpack.ProvidePlugin({
+      process: require.resolve('process/browser'),
+      // Buffer: ['buffer', 'Buffer'],
+  }),
   new HtmlWebpackPlugin({
     template: `${dir.public}/index.html`,
     templateParameters: {
