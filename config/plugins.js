@@ -6,6 +6,7 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 const InterpolateHtmlPlugin = require('interpolate-html-plugin');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
+const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
 
 const args = require('../utils/args');
 const buildMode = require('./buildMode');
@@ -17,17 +18,21 @@ const manifestLink = args.pwa
   : '';
 
 let plugins = [
-  new webpack.DefinePlugin({
-    process: { env },
-  }),
+  new webpack.DefinePlugin({ glob: { env } }),
   new HtmlWebpackPlugin({
     template: `${dir.public}/index.html`,
     templateParameters: {
       manifestLink
     }
   }),
-  new InterpolateHtmlPlugin({
-    PUBLIC_URL: dir.public
+  new InterpolateHtmlPlugin({ NODE_ENV: buildMode.type }),
+  new ForkTsCheckerWebpackPlugin({
+    typescript: {
+      diagnosticOptions: {
+        semantic: true,
+        syntactic: true,
+      },
+    },
   }),
   new NodePolyfillPlugin(),
   new SpriteLoaderPlugin(),

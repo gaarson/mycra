@@ -45,8 +45,12 @@ module.exports = {
       '@': dir.app
     },
     fallback: {
-      "fs": false,
+      "net": false,
+      "fs": require.resolve('browserify-fs'),
+      "stream": require.resolve('stream-browserify'),
+      "request": require.resolve('request'),
       "os": require.resolve("os-browserify/browser"),
+      "process": require.resolve("process/browser"),
       "path": require.resolve("path-browserify"),
       "http": require.resolve("stream-http"),
       "https": require.resolve("https-browserify"),
@@ -65,10 +69,10 @@ module.exports = {
     ],
   },
   plugins,
-  cache: {
-    type: 'filesystem',
-    cacheDirectory: cacheDir,
-  },
+  // cache: {
+  //   type: 'filesystem',
+  //   cacheDirectory: cacheDir,
+  // },
   optimization: {
     runtimeChunk: 'multiple',
     moduleIds: 'named',
