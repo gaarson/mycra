@@ -69,10 +69,10 @@ module.exports = {
     ],
   },
   plugins,
-  // cache: {
-  //   type: 'filesystem',
-  //   cacheDirectory: cacheDir,
-  // },
+  cache: {
+    type: 'filesystem',
+    cacheDirectory: cacheDir,
+  },
   optimization: {
     runtimeChunk: 'multiple',
     moduleIds: 'named',

@@ -26,6 +26,7 @@ let plugins = [
     }
   }),
   new InterpolateHtmlPlugin({ NODE_ENV: buildMode.type }),
+  new NodePolyfillPlugin(),
   new ForkTsCheckerWebpackPlugin({
     typescript: {
       diagnosticOptions: {
@@ -34,7 +35,6 @@ let plugins = [
       },
     },
   }),
-  new NodePolyfillPlugin(),
   new SpriteLoaderPlugin(),
 ];
 
