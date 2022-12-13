@@ -54,7 +54,7 @@ module.exports = {
       "path": require.resolve("path-browserify"),
       "http": require.resolve("stream-http"),
       "https": require.resolve("https-browserify"),
-      "buffer": require.resolve("buffer/"),
+      // "buffer": require.resolve("buffer/"),
       "url": require.resolve("url/")
     },
     extensions: [

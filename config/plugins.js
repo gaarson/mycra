@@ -21,7 +21,7 @@ let plugins = [
   new webpack.DefinePlugin({ glob: { env } }),
   new webpack.ProvidePlugin({
       process: require.resolve('process/browser'),
-      Buffer: require.resolve("buffer"),
+      Buffer: [require.resolve("buffer"), 'Buffer'],
   }),
   new HtmlWebpackPlugin({
     template: `${dir.public}/index.html`,
