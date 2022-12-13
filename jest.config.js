@@ -4,7 +4,6 @@ const args = require('./utils/args');
 const env = require('./config/env');
 const babelOptions = require('./babel.config');
 
-console.log('TEST PATH', paths.app);
 module.exports = {
   rootDir: paths.root,
   collectCoverageFrom: [
@@ -30,6 +29,7 @@ module.exports = {
       tsconfig: `${paths.root}/tsconfig.jest.json`,
     },
     customEnv: env,
+    glob: env,
   },
   moduleNameMapper: {
     "@/(.*)": paths.app,
