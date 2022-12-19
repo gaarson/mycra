@@ -32,6 +32,7 @@ let plugins = [
   new InterpolateHtmlPlugin({ NODE_ENV: buildMode.type }),
   new NodePolyfillPlugin(),
   new ForkTsCheckerWebpackPlugin({
+    async: true,
     typescript: {
       diagnosticOptions: {
         semantic: true,
