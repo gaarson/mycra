@@ -1,3 +1,4 @@
+const args = require('../utils/args');
 const buildMode = require('./buildMode');
 const babelOptions = require('../babel.config');
 
@@ -12,16 +13,66 @@ const getThreadLoader = (name, workers = 2) => ({
   },
 });
 
+let svgLoader = {
+  test: /\.svg$/,
+  use: [
+    {
+      loader: require.resolve('babel-loader'),
+      options: {
+          presets: [
+          require.resolve("@babel/preset-react"),
+        ],
+      },
+    },
+    { 
+      loader: require.resolve('svg-sprite-loader'),
+      options: {
+        runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
+      }
+    },
+  ],
+};
+
+if (args.splitSvg) {
+  svgLoader = {
+    test: /\.svg$/,
+    oneOf: [
+      {
+        resourceQuery: /^\?react$/,
+        use: [
+          {
+            loader: require.resolve('babel-loader'),
+            options: {
+              presets: [
+                require.resolve("@babel/preset-react"),
+              ],
+            },
+          },
+          { 
+            loader: require.resolve('svg-sprite-loader'),
+            options: {
+              runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
+            }
+          },
+        ]
+      },
+      {
+        loader: require.resolve('url-loader'),
+      }
+    ]
+  };
+}
+
 const loaders = [
   {
     exclude: /node_modules/,
     test: /\.ts(x?)$/,
     use: [
-      getThreadLoader('ts'),
       {
         loader: require.resolve('babel-loader'),
         options: babelOptions,
       },
+      getThreadLoader('ts'),
       {
         loader: require.resolve('ts-loader'),
         options: {
@@ -74,14 +125,6 @@ const loaders = [
     ]
   },
   {
-    test: /\.sass$/,
-    use: [
-      require.resolve('style-loader'),
-      require.resolve('css-loader'),
-      require.resolve('sass-loader'),
-    ],
-  },
-  {
     test: /\.scss$/,
     oneOf: [
       {
@@ -113,32 +156,14 @@ const loaders = [
     ]
   },
   {
-    test: /\.svg$/,
-    oneOf: [
-      {
-        resourceQuery: /^\?react$/,
-        use: [
-          {
-            loader: require.resolve('babel-loader'),
-            options: {
-              presets: [
-                require.resolve("@babel/preset-react"),
-              ],
-            },
-          },
-          { 
-            loader: require.resolve('svg-sprite-loader'),
-            options: {
-              runtimeGenerator: require.resolve('../utils/svg-to-icon-component-runtime-generator'),
-            }
-          },
-        ]
-      },
-      {
-        loader: require.resolve('url-loader'),
-      }
-    ]
+    test: /\.sass$/,
+    use: [
+      require.resolve('style-loader'),
+      require.resolve('css-loader'),
+      require.resolve('sass-loader'),
+    ],
   },
+  svgLoader,
   {
     test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
     loader: require.resolve('url-loader'),

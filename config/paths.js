@@ -16,7 +16,7 @@ module.exports = {
   app: path.join(root, args.path || 'app'),
   dist: path.join(root, args.outputDir),
   js: path.join(root, 'public/static/js'),
-  public: path.join(root, 'public'),
+  public: path.join(root, args.public),
   node_modules: path.join(root, 'node_modules'),
   env: path.join(root, `.env.${mode}`),
 };
