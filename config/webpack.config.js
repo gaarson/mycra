@@ -21,6 +21,24 @@ const baseFileName = buildMode.isDevelop() || buildMode.isTest()
   ? '[name]' 
   : '[name].[hash:8]';
 
+let fallback;
+
+if (args.nodePolyfills) {
+  fallback = {
+    "net": false,
+    "fs": require.resolve('browserify-fs'),
+    "stream": require.resolve('stream-browserify'),
+    "request": require.resolve('request'),
+    "os": require.resolve("os-browserify/browser"),
+    "process": require.resolve("process/browser"),
+    "path": require.resolve("path-browserify"),
+    "http": require.resolve("stream-http"),
+    "https": require.resolve("https-browserify"),
+    // "buffer": require.resolve("buffer/"),
+    "url": require.resolve("url/")
+  };
+}
+
 module.exports = {
   mode: buildMode.type,
   devtool,
@@ -44,19 +62,7 @@ module.exports = {
       'src': dir.app,
       '@': dir.app
     },
-    fallback: {
-      "net": false,
-      "fs": require.resolve('browserify-fs'),
-      "stream": require.resolve('stream-browserify'),
-      "request": require.resolve('request'),
-      "os": require.resolve("os-browserify/browser"),
-      "process": require.resolve("process/browser"),
-      "path": require.resolve("path-browserify"),
-      "http": require.resolve("stream-http"),
-      "https": require.resolve("https-browserify"),
-      // "buffer": require.resolve("buffer/"),
-      "url": require.resolve("url/")
-    },
+    fallback,
     extensions: [
       '.tsx', 
       '.ts', 

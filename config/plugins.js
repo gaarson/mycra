@@ -34,6 +34,7 @@ let plugins = [
   new ForkTsCheckerWebpackPlugin({
     async: true,
     typescript: {
+      memoryLimit: 1024,
       diagnosticOptions: {
         semantic: true,
         syntactic: true,

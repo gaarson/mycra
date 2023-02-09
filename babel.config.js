@@ -1,11 +1,16 @@
 const buildMode = require('./config/buildMode');
 
+const cacheDirectory = {
+  cacheDirectory: true,
+};
+
 module.exports = {
+  ...(buildMode.type === 'development' ? cacheDirectory :{}),
   presets: [
-  [
-    require.resolve("@babel/preset-env"),
-    { modules: false },
-  ],
+    [
+      require.resolve("@babel/preset-env"),
+      { modules: false },
+    ],
     require.resolve("@babel/preset-typescript"),
     require.resolve("@babel/preset-react"),
   ],

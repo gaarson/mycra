@@ -23,6 +23,8 @@ __snapshots__
 .env.test.local
 .env.production.local
 
+docs.md
+/docs_assets
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
