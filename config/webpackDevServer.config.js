@@ -9,7 +9,9 @@ const directory = args.pwa
 
 const config = {
   compress: true,
-  historyApiFallback: true,
+  historyApiFallback: {
+    disableDotRule: true
+  },
   open: true,
   client: {
     logging: 'info',
