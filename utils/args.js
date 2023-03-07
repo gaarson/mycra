@@ -14,6 +14,9 @@ const argsDefinitions = [
   { name: 'ci', type: Boolean },
   { name: 'server', alias: 'ssr', type: String, default: undefined },
   { name: 'pwa', type: Boolean },
+  { name: 'skipTypeChecking', alias: 'stc', type: Boolean, default: false },
+  { name: 'module', alias: 'm', type: String, default: undefined },
+  { name: 'includeModules', alias: 'im', type: String, default: undefined },
   { name: 'nodePolyfills', type: Boolean, alias: 'np', default: false },
   { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false }
 ];

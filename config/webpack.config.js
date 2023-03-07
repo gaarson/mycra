@@ -39,19 +39,40 @@ if (args.nodePolyfills) {
   };
 }
 
+let externals;
+
+if (args.includeModules) {
+  externals = args.includeModules.split(',').reduce((prev, curr) => {
+    return {
+      ...prev,
+      [curr]: curr,
+    };
+  }, {});
+} 
+
 module.exports = {
   mode: buildMode.type,
   devtool,
-  entry: [require.resolve('@babel/polyfill'), dir.app],
-  output: {
+  entry: args.module 
+  ? `${dir.app}/index.tsx` 
+  : [require.resolve('@babel/polyfill'), dir.app],
+  output: args.module ? {
+    path: dir.dist,
+    filename: `[name].js`,
+    globalObject: 'this',
+    library: {
+      name: args.module,
+      type: 'umd',
+      umdNamedDefine: true,
+    },
+  } : {
     path: dir.dist,
     filename: `./js/${baseFileName}.js`,
     chunkFilename: `./js/${baseFileName}.chunk.js`,
     publicPath: '/',
   },
-  module: {
-    rules: loaders,
-  },
+  module: { rules: loaders },
+  externals,
   resolve: {
     modules: [
       'node_modules', 
@@ -60,7 +81,7 @@ module.exports = {
     ],
     alias: {
       'src': dir.app,
-      '@': dir.app
+      '@': dir.app,
     },
     fallback,
     extensions: [
@@ -75,11 +96,14 @@ module.exports = {
     ],
   },
   plugins,
+  watchOptions: {
+    ignored: /node_modules/,
+  },
   cache: {
     type: 'filesystem',
     cacheDirectory: cacheDir,
   },
-  optimization: {
+  optimization: args.module !== undefined ? undefined : {
     runtimeChunk: 'multiple',
     moduleIds: 'named',
     usedExports: true,
