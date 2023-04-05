@@ -23,6 +23,10 @@ module.exports = () => {
     }
   } else {
     switch (buildMode.type) {
+      case 'es-production': {
+        require('./scripts/es');
+        break;
+      }
       case 'development': {
         require('./scripts/dev');
         break;

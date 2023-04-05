@@ -3,6 +3,8 @@ const modeMap = new Map([
   ['start', 'development'],
   ['build', 'production'],
   ['test', 'test'],
+  ['es-start', 'es-development'],
+  ['es-build', 'es-production'],
 ]);
 
 const mode = modeMap.get(process.argv[2]);

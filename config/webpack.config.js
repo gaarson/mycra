@@ -4,7 +4,7 @@ const loaders = require('./loaders');
 const buildMode = require('./buildMode');
 const args = require('../utils/args');
 const dir = require('./paths');
-
+const nodeExternals = require('webpack-node-externals');
 const devtoolDev = 'eval-cheap-source-map';
 
 const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
@@ -49,18 +49,20 @@ module.exports = {
     chunkFilename: `./js/${baseFileName}.chunk.js`,
     publicPath: '/',
   },
-  module: {
-    rules: loaders,
-  },
+  module: { rules: loaders },
   resolve: {
     modules: [
       'node_modules', 
       dir.app,
       dir.public,
+      ...(args.includeModules ? [`${dir.root}/${args.includeModules}`] : [])
     ],
     alias: {
       'src': dir.app,
-      '@': dir.app
+      '@': dir.app,
+      ...(args.includeModules ? {
+        [args.includeModules]: `${dir.root}/${args.includeModules}`
+      } : {})
     },
     fallback,
     extensions: [
@@ -75,6 +77,9 @@ module.exports = {
     ],
   },
   plugins,
+  watchOptions: {
+    ignored: /node_modules/,
+  },
   cache: {
     type: 'filesystem',
     cacheDirectory: cacheDir,

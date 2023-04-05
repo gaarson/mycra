@@ -20,7 +20,10 @@ const prodConfig = require('../config/webpack.config');
 
 const startBuild = () => new Promise((resolve, reject) => {
   webpack(prodConfig).run((err, stats) => {
-    if (err || stats.hasErrors()) reject(stats.compilation.errors);
+    if (err || stats.hasErrors()) {
+      if (stats) reject(stats.compilation.errors);
+      else reject(err);
+    }
 
     if (args.pwa) {
       createAssetsJson([
