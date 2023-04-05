@@ -64,8 +64,21 @@ if (args.splitSvg) {
 }
 
 const loaders = [
+  // {
+  //   exclude: /node_modules/,
+  //   test: /\.[jt]sx?$/,
+  //   use: [
+  //     getThreadLoader('es'),
+  //     {
+  //       loader: require.resolve('esbuild-loader'),
+  //       options: {
+  //         target: 'es2015',
+  //         jsx: 'automatic'
+  //       }
+  //     }
+  //   ]
+  // },
   {
-    exclude: /node_modules/,
     test: /\.ts(x?)$/,
     use: [
       {

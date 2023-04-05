@@ -4,7 +4,7 @@ const loaders = require('./loaders');
 const buildMode = require('./buildMode');
 const args = require('../utils/args');
 const dir = require('./paths');
-
+const nodeExternals = require('webpack-node-externals');
 const devtoolDev = 'eval-cheap-source-map';
 
 const cacheDir = path.resolve(dir.root, 'node_modules', '.cache');
@@ -39,49 +39,30 @@ if (args.nodePolyfills) {
   };
 }
 
-let externals;
-
-if (args.includeModules) {
-  externals = args.includeModules.split(',').reduce((prev, curr) => {
-    return {
-      ...prev,
-      [curr]: curr,
-    };
-  }, {});
-} 
-
 module.exports = {
   mode: buildMode.type,
   devtool,
-  entry: args.module 
-  ? `${dir.app}/index.tsx` 
-  : [require.resolve('@babel/polyfill'), dir.app],
-  output: args.module ? {
-    path: dir.dist,
-    filename: `[name].js`,
-    globalObject: 'this',
-    library: {
-      name: args.module,
-      type: 'umd',
-      umdNamedDefine: true,
-    },
-  } : {
+  entry: [require.resolve('@babel/polyfill'), dir.app],
+  output: {
     path: dir.dist,
     filename: `./js/${baseFileName}.js`,
     chunkFilename: `./js/${baseFileName}.chunk.js`,
     publicPath: '/',
   },
   module: { rules: loaders },
-  externals,
   resolve: {
     modules: [
       'node_modules', 
       dir.app,
       dir.public,
+      ...(args.includeModules ? [`${dir.root}/${args.includeModules}`] : [])
     ],
     alias: {
       'src': dir.app,
       '@': dir.app,
+      ...(args.includeModules ? {
+        [args.includeModules]: `${dir.root}/${args.includeModules}`
+      } : {})
     },
     fallback,
     extensions: [
@@ -103,7 +84,7 @@ module.exports = {
     type: 'filesystem',
     cacheDirectory: cacheDir,
   },
-  optimization: args.module !== undefined ? undefined : {
+  optimization: {
     runtimeChunk: 'multiple',
     moduleIds: 'named',
     usedExports: true,

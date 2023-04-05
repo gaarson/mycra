@@ -46,17 +46,15 @@ if (!args.skipTypeChecking) {
   ];
 }
 
-if (args.module === undefined) {
-  plugins = [
-    ...plugins,
-    new HtmlWebpackPlugin({
-      template: `${dir.public}/index.html`,
-      templateParameters: {
-        manifestLink
-      }
-    }),
-  ];
-}
+plugins = [
+  ...plugins,
+  new HtmlWebpackPlugin({
+    template: `${dir.public}/index.html`,
+    templateParameters: {
+      manifestLink
+    }
+  }),
+];
 
 if (buildMode.isBundleSize()) {
   plugins = [
@@ -73,55 +71,6 @@ if (args.devServer) {
 }
 
 let copyPatterns = [];
-
-if (args.module) {
-  const replacerFilePath = require.resolve('../utils/module-replacer');
-
-  plugins = [
-    ...plugins,
-    new NormalModuleReplacementPlugin(
-      /package-mock/,
-     `${dir.root}/node_modules/react`
-    ),
-    new NormalModuleReplacementPlugin(
-      /^[react]+$/,
-      replacerFilePath
-    ),
-  ];
-}
-
-if (args.includeModules) {
-  const modules = args.includeModules.split(',');
-  const replacerFilePath = require.resolve('../utils/module-replacer');
-
-  copyPatterns = [
-    ...copyPatterns,
-    {
-      from: replacerFilePath,
-      to: './'
-    },
-    ...modules.map(module => {
-      return {
-        from: `${dir.root}/${module}/`,
-        to: `./${module}/`,
-      };
-    })
-  ];
-
-  plugins = [
-    ...plugins,
-    new HtmlWebpackTagsPlugin({ 
-      append: false,
-      tags: modules.map((module) => {
-        return {
-          type: 'js',
-          path: `${module}/main.js`
-        };
-      }),
-    })
-  ];
-}
-
 if (args.pwa) {
   copyPatterns = [
     ...copyPatterns,
@@ -133,9 +82,9 @@ if (args.pwa) {
 }
 
 if (
-  (buildMode.isTest() || 
+  buildMode.isTest() || 
   buildMode.isProduct() || 
-  !args.devServer) && args.module === undefined
+  !args.devServer
 ) {
   copyPatterns = [
     ...copyPatterns,
