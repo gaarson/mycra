@@ -39,6 +39,13 @@ if (args.nodePolyfills) {
   };
 }
 
+const includeModules = args.includeModules ? args.includeModules.split(',').reduce((prev, curr) => {
+  return {
+    ...prev,
+    [curr]: `${dir.root}/${curr}`
+  };
+}, {}) : null;
+
 module.exports = {
   mode: buildMode.type,
   devtool,
@@ -55,14 +62,12 @@ module.exports = {
       'node_modules', 
       dir.app,
       dir.public,
-      ...(args.includeModules ? [`${dir.root}/${args.includeModules}`] : [])
+      ...(includeModules ? Object.values(includeModules) : [])
     ],
     alias: {
       'src': dir.app,
       '@': dir.app,
-      ...(args.includeModules ? {
-        [args.includeModules]: `${dir.root}/${args.includeModules}`
-      } : {})
+      ...(includeModules ? includeModules : {})
     },
     fallback,
     extensions: [
