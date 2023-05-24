@@ -49,7 +49,7 @@ if (!args.skipTypeChecking) {
 plugins = [
   ...plugins,
   new HtmlWebpackPlugin({
-    template: `${dir.public}/index.html`,
+    template: `${dir.public}/${args.template}`,
     templateParameters: {
       manifestLink
     }
