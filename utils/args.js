@@ -20,7 +20,7 @@ const argsDefinitions = [
   { name: 'includeModules', alias: 'im', type: String, default: undefined },
   { name: 'nodePolyfills', type: Boolean, alias: 'np', default: false },
   { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false },
-  { name: 'template', type: String, alias: 't' default: 'index.html' }
+  { name: 'template', type: String, alias: 't', default: 'index.html' }
 ];
 
 const result = {};
