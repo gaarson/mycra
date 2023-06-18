@@ -54,7 +54,7 @@ module.exports = {
     path: dir.dist,
     filename: `./js/${baseFileName}.js`,
     chunkFilename: `./js/${baseFileName}.chunk.js`,
-    publicPath: '/',
+    publicPath: args.publicPath,
   },
   module: { rules: loaders },
   resolve: {

@@ -10,6 +10,7 @@ const argsDefinitions = [
   { name: 'devServer', alias: 'ds', type: Boolean },
   { name: 'clear', alias: 'cl', type: Boolean },
   { name: 'public', alias: 'pb', type: String, default: 'public' },
+  { name: 'publicPath', alias: 'pp', type: String, default: '/' },
   { name: 'source-map', alias: 'sm', type: Boolean },
   { name: 'ci', type: Boolean },
   { name: 'server', alias: 'ssr', type: String, default: undefined },
@@ -18,7 +19,8 @@ const argsDefinitions = [
   { name: 'module', alias: 'm', type: String, default: undefined },
   { name: 'includeModules', alias: 'im', type: String, default: undefined },
   { name: 'nodePolyfills', type: Boolean, alias: 'np', default: false },
-  { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false }
+  { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false },
+  { name: 'template', type: String, alias: 't', default: 'index.html' }
 ];
 
 const result = {};
