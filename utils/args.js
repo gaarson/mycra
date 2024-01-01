@@ -48,4 +48,4 @@ argsDefinitions.forEach((def) => {
   }
 });
 
-module.exports = result;
+export default result;

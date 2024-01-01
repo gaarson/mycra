@@ -1,0 +1,19 @@
+{
+  "name": "example",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "build": "our-scripts build -p app",
+    "dev-server": "our-scripts start -p app",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "our-scripts": "file:..",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}

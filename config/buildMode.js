@@ -1,4 +1,5 @@
-const args = require('../utils/args');
+import args from '../utils/args.js';
+
 const modeMap = new Map([
   ['start', 'development'],
   ['build', 'production'],
@@ -18,7 +19,7 @@ const hashCode = (s) => {
   return h;
 };
 
-module.exports = {
+export default {
   type: mode,
   simpleClassHash: mode === undefined || mode === 'test' 
   ? '[local]' 
