@@ -4,6 +4,7 @@ import esbuild from 'esbuild';
 import http from 'node:http';
 import url from 'node:url';
 import fs from 'node:fs';
+import fsExtra from 'fs-extra'
 import path from 'path';
 
 import chokidar from 'chokidar';
@@ -114,6 +115,13 @@ const getHTMLTemplate = (pathname) => {
 };
 
 (async () => {
+  if (fsExtra.existsSync(dir.dist)) {
+    // Remove the directory
+    fsExtra.removeSync(dir.dist);
+    console.log(`Directory "${dir.dist}" removed successfully.`);
+  } else {
+    console.error(`Directory "${dir.dist}" does not exist.`);
+  }
   const htmlFilePath = `${dir.public}/index.html`;
   const rawHTML = await getHTMLTemplate(htmlFilePath);
   let html = rawHTML;
@@ -126,7 +134,7 @@ const getHTMLTemplate = (pathname) => {
     assetNames: 'assets/[name]-[hash]',
     chunkNames: 'chunks/[name]-[hash]',
     entryNames: '[name]-[hash]',
-    write: true,
+    // write: true,
     allowOverwrite: true,
     sourcemap: true,
     treeShaking: true,
@@ -134,18 +142,24 @@ const getHTMLTemplate = (pathname) => {
     absWorkingDir: dir.root,
     plugins: [
       stylePlugin({
-        cssModulesMatch: '.css',
+        cssModulesMatch: /\.s?[ca]ss$/,
         cssModulesOptions: {
-          getJSON: function (cssFileName, json, outputFileName) {
-            console.log(cssFileName, json, outputFileName);
-            // var path = require("path");
-            // var cssName = path.basename(cssFileName, ".css");
-            // var jsonFileName = path.resolve("./build/" + cssName + ".json");
-            // fs.writeFileSync(jsonFileName, JSON.stringify(json));
+          generateScopedName: function (name, filename, css) {
+            var i = css.indexOf("." + name);
+            var line = css.substr(0, i).split(/[\r\n]/).length;
+            var file = path.basename(filename, ".css");
+
+            return "_" + file + "_" + line + "_" + name;
           },
         }
       }),
-      styleNamePlugin,
+      styleNamePlugin(function (name, filename, css) {
+        var i = css.indexOf("." + name);
+        var line = css.substr(0, i).split(/[\r\n]/).length;
+        var file = path.basename(filename, ".css");
+
+        return "_" + file + "_" + line + "_" + name;
+      }),
       svgr(),
       envFilePlugin,
       // nodeExternalsPlugin()
