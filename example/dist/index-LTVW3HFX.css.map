@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["temp_stylePlugin:app/style.css"],
-  "sourcesContent": ["._style_1_some-style {\n  color: blue;\n  background-color: red;\n}\n"],
-  "mappings": ";AAAA,CAAC;AACC,SAAO;AACP,oBAAkB;AACpB;",
-  "names": []
-}

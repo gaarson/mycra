@@ -1,7 +1,9 @@
-const { APP_ENV_KEY } = require('../constants');
-const buildMode = require('./buildMode');
+import { APP_ENV_KEY } from '../constants.js';
 
-module.exports = Object.keys(process.env)
+import buildMode from './buildMode.js';
+
+console.log('proces', process.env);
+export default Object.keys(process.env)
   .filter((key) => key.startsWith(APP_ENV_KEY))
   .reduce((acc, curr) => ({ 
     ...acc, 

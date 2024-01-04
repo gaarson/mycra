@@ -6,7 +6,8 @@
   "type": "module",
   "scripts": {
     "build": "our-scripts build -p app",
-    "dev-server": "our-scripts start -p app",
+    "dev-lib-server": "our-scripts start -p lib -d lib-dist",
+    "dev-server": "our-scripts start -p app -ssvg",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",

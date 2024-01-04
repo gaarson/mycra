@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["../lib/a.ts"],
+  "sourcesContent": ["console.log('AAAAAAAAAA');\n"],
+  "mappings": ";;AAAA,UAAQ,IAAI,YAAY;",
+  "names": []
+}

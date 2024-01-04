@@ -1,3 +1,3 @@
-exports.DEFAULT_PORT = '4000';
-exports.DEFAULT_HOST = '0.0.0.0';
-exports.APP_ENV_KEY = 'MYCRA_VAR_'
+export const DEFAULT_PORT = '4000';
+export const DEFAULT_HOST = '0.0.0.0';
+export const APP_ENV_KEY = 'MYCRA_VAR_'

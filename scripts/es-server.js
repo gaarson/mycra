@@ -9,16 +9,10 @@ import path from 'path';
 
 import chokidar from 'chokidar';
 
-import svgr from 'esbuild-plugin-svgr';
-import { nodeExternalsPlugin } from 'esbuild-node-externals';
-import envFilePlugin from 'esbuild-envfile-plugin';
-
-import stylePlugin from 'esbuild-style-plugin'
-
 import args from '../utils/args.js';
 import dir from '../config/paths.js';
 
-import { styleNamePlugin } from '../styleName-plugin/index.js';
+import { getConfig } from '../config/index.js';
 
 const MIME_FILES_MAP = {
   '.ico': 'image/x-icon',
@@ -27,12 +21,17 @@ const MIME_FILES_MAP = {
   '.json': 'application/json',
   '.css': 'text/css',
   '.png': 'image/png',
+  '.gif': 'image/gif',
   '.jpg': 'image/jpeg',
   '.wav': 'audio/wav',
   '.mp3': 'audio/mpeg',
   '.svg': 'image/svg+xml',
   '.pdf': 'application/pdf',
-  '.doc': 'application/msword'
+  '.doc': 'application/msword',
+  '.woff': 'font/woff',
+  '.woff2': 'font/woff2',
+  '.eot': 'application/vnd.ms-fontobject',
+  '.ttf': 'font/ttf'
 };
 
 const checkFileExists = (filePath) => {
@@ -61,7 +60,6 @@ const startWatching = (directoryPath, addCb, rmCb) => {
     .on('error', (error) => {
       console.error('Error happened', error);
     })
-
 }
 
 const sendFile = (pathname, res) => {
@@ -126,57 +124,7 @@ const getHTMLTemplate = (pathname) => {
   const rawHTML = await getHTMLTemplate(htmlFilePath);
   let html = rawHTML;
 
-  let ctx = await esbuild.context({
-    entryPoints: [`${dir.app}/index.tsx`],
-    bundle: true,
-    outdir: dir.dist,
-    define: {'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production')},
-    assetNames: 'assets/[name]-[hash]',
-    chunkNames: 'chunks/[name]-[hash]',
-    entryNames: '[name]-[hash]',
-    // write: true,
-    allowOverwrite: true,
-    sourcemap: true,
-    treeShaking: true,
-    metafile: true,
-    absWorkingDir: dir.root,
-    plugins: [
-      stylePlugin({
-        cssModulesMatch: /\.s?[ca]ss$/,
-        cssModulesOptions: {
-          generateScopedName: function (name, filename, css) {
-            var i = css.indexOf("." + name);
-            var line = css.substr(0, i).split(/[\r\n]/).length;
-            var file = path.basename(filename, ".css");
-
-            return "_" + file + "_" + line + "_" + name;
-          },
-        }
-      }),
-      styleNamePlugin(function (name, filename, css) {
-        var i = css.indexOf("." + name);
-        var line = css.substr(0, i).split(/[\r\n]/).length;
-        var file = path.basename(filename, ".css");
-
-        return "_" + file + "_" + line + "_" + name;
-      }),
-      svgr(),
-      envFilePlugin,
-      // nodeExternalsPlugin()
-    ],
-    jsx: 'automatic',
-    alias: {
-      'app': dir.app,
-    },
-    loader: {
-      '.png': 'dataurl',
-      '.woff': 'dataurl',
-      '.woff2': 'dataurl',
-      '.eot': 'dataurl',
-      '.ttf': 'dataurl',
-      '.svg': 'dataurl',
-    },
-  })
+  let ctx = await esbuild.context(getConfig())
 
   // The return value tells us where esbuild's local server is
   await ctx.watch()

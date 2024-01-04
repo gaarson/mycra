@@ -1,0 +1,15 @@
+ :global .icon {
+  background-color: grey;
+ }
+.count {
+  width: 10px;
+}
+ .get-mc-style {}
+ .get-style {
+
+ }
+
+.some-style {
+  color: blue;
+  background-color: red;
+}

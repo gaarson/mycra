@@ -2,7 +2,7 @@ const path = require('path');
 const { stringifyRequest } = require('loader-utils');
 const { stringifySymbol, stringify } = require('svg-sprite-loader/lib/utils');
 
-module.exports = function runtimeGenerator({ symbol, config, context, loaderContext }) {
+export default function runtimeGenerator({ symbol, config, context, loaderContext }) {
   const { spriteModule, symbolModule, runtimeOptions } = config;
   const compilerContext = loaderContext._compiler.context;
 

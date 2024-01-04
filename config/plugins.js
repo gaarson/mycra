@@ -1,118 +1,69 @@
-const webpack = require('webpack');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const CopyWebpackPlugin = require('copy-webpack-plugin');
-const SpriteLoaderPlugin = require('svg-sprite-loader/plugin');
-const { CleanWebpackPlugin } = require('clean-webpack-plugin');
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
-const InterpolateHtmlPlugin = require('interpolate-html-plugin');
-const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
-const ForkTsCheckerWebpackPlugin = require('fork-ts-checker-webpack-plugin');
-const HtmlWebpackTagsPlugin = require('html-webpack-tags-plugin');
-const { NormalModuleReplacementPlugin } = webpack;
+import fs from 'fs';
+import path from 'path';
+import { nodeExternalsPlugin } from 'esbuild-node-externals';
+import svgr from 'esbuild-plugin-svgr';
+import envFilePlugin from 'esbuild-envfile-plugin';
+import stylePlugin from 'esbuild-style-plugin'
+import { environmentPlugin } from 'esbuild-plugin-environment';
 
-const args = require('../utils/args');
-const buildMode = require('./buildMode');
-const dir = require('./paths');
-const env = require('./env');
+import { polyfillNode } from "esbuild-plugin-polyfill-node";
+import { styleNamePlugin } from '../esbuild-module-style-name-plugin/index.js';
+import buildMode from './buildMode.js';
+import { mySvg } from '../esbuild-my-svg-plugin/index.js';
 
-const manifestLink = args.pwa
-  ? '<link rel="manifest" href="manifest.json">'
-  : '';
+import dir from './paths.js';
+import args from '../utils/args.js';
 
-let plugins = [
-  new webpack.DefinePlugin({ glob: { env } }),
-  new webpack.ProvidePlugin({
-      process: require.resolve('process/browser'),
-      Buffer: [require.resolve("buffer"), 'Buffer'],
-  }),
-  new InterpolateHtmlPlugin({ NODE_ENV: buildMode.type }),
-  new NodePolyfillPlugin(),
-  new SpriteLoaderPlugin(),
-];
+const getCSSTemplate = (pathname) => {
+  return new Promise((resolve, reject) => {
+    fs.exists(pathname, function (exist) {
+      if(!exist) {
+        // if the file is not found, return 404
+        console.error('File doesn`t exists');
+        reject();
+      }
 
-if (!args.skipTypeChecking) {
-  plugins = [
-    ...plugins,
-    new ForkTsCheckerWebpackPlugin({
-      async: true,
-      typescript: {
-        memoryLimit: 1024,
-        diagnosticOptions: {
-          semantic: true,
-          syntactic: true,
-        },
-      },
-    }),
-  ];
-}
+      // if is a directory search for index file matching the extension
+      if (fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
 
-plugins = [
-  ...plugins,
-  new HtmlWebpackPlugin({
-    template: `${dir.public}/${args.template}`,
-    templateParameters: {
-      manifestLink
-    }
-  }),
-];
+      // read file from file system
+      fs.readFileSync(pathname, 'utf8', function(err, data){
+        if(err){
+          console.error('ERROR: ', err);
+        } else {
+          // console.log('DATA', data);
+          resolve(data);
+          // if the file is found, set Content-type and send data
+        }
+      });
+    });
+  })
+};
 
-if (buildMode.isBundleSize()) {
-  plugins = [
-    ...plugins,
-    new BundleAnalyzerPlugin(),
-  ];
-}
-
-if (args.devServer) {
-  plugins = [
-    ...plugins,
-    new webpack.HotModuleReplacementPlugin(),
-  ];
-}
-
-let copyPatterns = [];
-if (args.pwa) {
-  copyPatterns = [
-    ...copyPatterns,
-    {
-      from: `${dir.app}/pwa/`,
-      to: './'
-    }
-  ];
-}
-
-if (
-  buildMode.isTest() || 
-  buildMode.isProduct() || 
-  !args.devServer
-) {
-  copyPatterns = [
-    ...copyPatterns,
-    {
-      from: `${dir.public}/`,
-      to: './',
-      globOptions: {
-        ignore: !args.devServer ? ['**/*.html'] : [],
-      },
+export const getPlugins = (scopeGenerator) => ([
+  stylePlugin({
+    cssModulesMatch: /\.s?css$/,
+    renderOptions: {
+      sassOptions: {
+        importer: (url, prev) => {
+          if (url.startsWith('@/')) {
+            return { file: path.join(dir.app, url.replace('@', '')) };
+          };
+        } 
+      }
     },
-  ];
-}
-
-if (copyPatterns.length) {
-  plugins = [
-    ...plugins,
-    new webpack.ContextReplacementPlugin(/moment[\/\\]locale$/, /ru/),
-    new CopyWebpackPlugin({
-      patterns: copyPatterns
-    })
-  ];
-}
-
-if (args.clear) {
-  plugins = [
-    ...plugins,
-    new CleanWebpackPlugin()
-  ];
-}
-
-module.exports = plugins;
+    cssModulesOptions: {
+      generateScopedName: scopeGenerator || buildMode.simpleClassHash,
+    }
+  }),
+  styleNamePlugin(scopeGenerator || buildMode.simpleClassHash),
+  mySvg(dir.app, dir.dist, args.splitSvg),
+  // environmentPlugin({
+  //   glob: {
+  //     VAL: 'AA'
+  //   },
+  // })
+  polyfillNode(),
+  envFilePlugin,
+  // nodeExternalsPlugin()
+])
