@@ -11,20 +11,11 @@ import chokidar from 'chokidar';
 const startWatching = (directoryPath, addCb, rmCb) => {
   var watcher = chokidar.watch(directoryPath, { ignored: /^\./, persistent: true });
 
-  watcher
-    .on('add', (path) => {
-      addCb(path)
-      // console.log('File', path, 'has been added');
-    })
-    // .on('change', (path) => {
-    //   console.log('File', path, 'has been changed');
-    // })
-    .on('unlink', (path) => {
-      if (rmCb) rmCb(path.replace(directoryPath, ''));
-    })
-    .on('error', (error) => {
-      console.error('Error happened', error);
-    })
+  watcher.on('add', addCb).on('unlink', (path) => {
+    if (rmCb) rmCb(path.replace(directoryPath, ''));
+  }).on('error', (error) => {
+    console.error('Error happened', error);
+  })
 }
 
 const getCSSTemplate = (pathname) => {
@@ -34,30 +25,24 @@ const getCSSTemplate = (pathname) => {
       if (exist) {
         if (fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
         fs.readFile(pathname, 'utf8', function(err, data){
-          if(err){
+          if(err) {
             console.error('ERRORIK: ', err);
           } else {
-            // console.log('DATA', data);
             resolve(data);
-            // if the file is found, set Content-type and send data
           }
         });
       } else {
         startWatching(pathname, (newPath) => {
           if (fs.statSync(newPath).isDirectory()) newPath += '/index' + ext;
           fs.readFile(newPath, 'utf8', function(err, data){
-            if(err){
+            if(err) {
               console.error('ERRORSSSSSSSS: ', err);
             } else {
-              // console.log('DATA', data);
               resolve(data);
-              // if the file is found, set Content-type and send data
             }
           });
         })
       }
-
-      // read file from file system
     });
   })
 };
@@ -99,6 +84,7 @@ const changeStyleNametoClassName = (tsTree, modulesMap) => {
       } else {
         styleNameString = '';
       }
+      styleNameExp = undefined;
     } else {
       styleNameExp = print(styleNameExp[0]);
       styleNameExp = `${styleNameExp ? styleNameExp.slice(1, -1) : ''}`;
@@ -117,11 +103,16 @@ const changeStyleNametoClassName = (tsTree, modulesMap) => {
       if (classNameExp.length) {
         node.parent = map(node.parent, 'JsxAttribute[name.name=className] JsxExpression', (classNameStringNode) => {
           let classNodeExpStr = print(classNameStringNode).slice(1, -1);
+          let res;
 
-          const express = match(ast(`<a t={((c = '', s) => {
-            const m = JSON.parse('${JSON.stringify(modulesMap)}');
-return (c ? c + ' ' : '') + (s ? s.trim().split(' ').map(s => m[s]).join(' ') : ${styleNameString ? styleNameString : '""'})
-          })(${classNodeExpStr}, ${styleNameExp})} />`), 'JsxExpression');
+          if (styleNameString) {
+            res = '`${' + classNodeExpStr + '} ' + '${'+ styleNameString + '}`';
+          }
+          if (styleNameExp) {
+            res = "`${("+ styleNameExp + " || '').trim().split(' ').map(s => JSON.parse('" + JSON.stringify(modulesMap) + "')[s]).join(' ')}`";
+          }
+
+          const express = match(ast(`<a t={${res}} />`), 'JsxExpression');
           classNameStringNode.expression = express[0].expression;
 
           return classNameStringNode;
@@ -137,14 +128,11 @@ return (c ? c + ' ' : '') + (s ? s.trim().split(' ').map(s => m[s]).join(' ') : 
     }
 
     node.name.escapedText = 'className';
-    map(node, 'JsxExpression', (classNameStringNode) => {
-      const express = match(ast(`<a t={((s) => {
-        const m = JSON.parse('${JSON.stringify(modulesMap)}');
-        return (s ? s.trim().split(' ').map(s => m[s]).join(' ') : ${styleNameString ? styleNameString : '""'});
-      })(${styleNameExp})} />`), 'JsxExpression');
-      classNameStringNode.expression = express[0].expression;
+    map(node, 'JsxExpression', (classNameNode) => {
+      const express = match(ast(`<a t={${"`${("+ styleNameExp + " || '').trim().split(' ').map(s => JSON.parse('" + JSON.stringify(modulesMap) + "')[s]).join(' ')}`"}} />`), 'JsxExpression');
+      classNameNode.expression = express[0].expression;
 
-      return classNameStringNode;
+      return classNameNode;
     })
 
     return node;
@@ -154,16 +142,10 @@ return (c ? c + ' ' : '') + (s ? s.trim().split(' ').map(s => m[s]).join(' ') : 
 export const styleNamePlugin = (scopeGenerator) => ({
   name: 'styleNamePlugin',
   setup(build) {
-    // Load ".txt" files and return an array of words
     build.onLoad({ filter: /\.[jt]sx$/ }, async (args) => {
       const loader = path.extname(args.path).replace('.', '');
       let sourceCode = await fs.promises.readFile(args.path, 'utf8')
       const tree = ast(sourceCode);
-
-      // const result = await esbuild.transform(sourceCode, {
-      //   // jsx: 'transform',
-      //   loader: 'jsx',
-      // })
 
       const modulesMap = await getImportedCssFiles(tree, path.dirname(args.path), scopeGenerator);
       const newSourceCode = changeStyleNametoClassName(tree, modulesMap);

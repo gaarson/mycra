@@ -11,7 +11,7 @@ export const Component = () => {
   const getS = () => { return 'get-style' }
   const getM = () => { return 'get-mc-style' }
   return (
-    <article>
+    <article styleName={getM()}>
       <img className={getS()} styleName="image count" src={Svg} />
       <div className="alal" styleName="new-class class">
         Component
