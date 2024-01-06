@@ -45,6 +45,13 @@ export const getPlugins = (scopeGenerator) => {
     ]
   }
 
+  if (args.excludeModules) {
+    plugins = [
+      ...plugins,
+      nodeExternalsPlugin()
+    ]
+  }
+
   if (args.allowModules) {
     plugins = [
       ...plugins,

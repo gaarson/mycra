@@ -12,6 +12,7 @@ const argsDefinitions = [
   { name: 'generateDts', alias: 'dts', type: Boolean },
   { name: 'ci', type: Boolean },
   { name: 'includeModules', alias: 'im', type: String, default: undefined },
+  { name: 'excludeModules', alias: 'em', type: Boolean },
   { name: 'allowModules', alias: 'am', type: String, default: undefined },
   { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false },
   { name: 'template', type: String, alias: 't', default: 'index.html' }
