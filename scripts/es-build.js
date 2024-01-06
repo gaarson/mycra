@@ -4,7 +4,7 @@ import esbuild from 'esbuild';
 import path from 'path';
 import fs from 'node:fs';
 import fsExtra from 'fs-extra'
-import url from 'node:url';
+import url from 'url';
 
 import chokidar from 'chokidar';
 import { glob } from 'glob';
@@ -19,6 +19,8 @@ import dir from '../config/paths.js';
 import { getConfig } from '../config/index.js';
 
 import { MIME_FILES_MAP } from '../constants.js';
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const getHTMLTemplate = (pathname) => {
   return new Promise((resolve, reject) => {
@@ -44,11 +46,16 @@ const getHTMLTemplate = (pathname) => {
 
 (async () => {
   try {
-    if (fsExtra.existsSync(dir.dist)) {
+    if (fsExtra.existsSync(dir.dist) 
+      && path.dirname(dir.dist) !== path.dirname(dir.root)) {
       fsExtra.removeSync(dir.dist);
       console.log(`Directory "${dir.dist}" removed successfully.`);
     } else {
-      console.error(`Directory "${dir.dist}" does not exist.`);
+      if (path.dirname(dir.dist) === path.dirname(dir.root)) {
+        console.error(`Directory dist and root same.`);
+      } else {
+        console.error(`Directory "${dir.dist}" does not exist.`);
+      }
     }
     const htmlFilePath = `${dir.public}/${args.template}`;
     const updateFileList = async (directoryToWatch) => {
@@ -85,17 +92,19 @@ const getHTMLTemplate = (pathname) => {
       if (path.extname(file) === '.css') styles = [...styles, file.replace(dir.dist, '')];
     })
 
-    fs.writeFile(
-      `${dir.dist}/${args.template}`, 
-      drawHTML(await getHTMLTemplate(htmlFilePath)), 
-      (err) => {
-        if (err) {
-          console.error('Error writing HTML file:', err);
-        } else {
-          console.log(`HTML file (${`${dir.dist}/${args.template}`}) created successfully!`);
+    if (rawHTML) {
+      fs.writeFile(
+        `${dir.dist}/${args.template}`, 
+        drawHTML(await getHTMLTemplate(htmlFilePath)), 
+        (err) => {
+          if (err) {
+            console.error('Error writing HTML file:', err);
+          } else {
+            console.log(`HTML file (${`${dir.dist}/${args.template}`}) created successfully!`);
+          }
         }
-      }
-    );
+      );
+    }
     if (args.size) {
       const distFiles = (await updateFileList(dir.dist))
       .filter(s => {

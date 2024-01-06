@@ -6,6 +6,7 @@ import envFilePlugin from 'esbuild-envfile-plugin';
 import stylePlugin from 'esbuild-style-plugin'
 import { environmentPlugin } from 'esbuild-plugin-environment';
 
+import { dtsPlugin } from "esbuild-plugin-d.ts";
 import { polyfillNode } from "esbuild-plugin-polyfill-node";
 import { styleNamePlugin } from '../esbuild-module-style-name-plugin/index.js';
 import buildMode from './buildMode.js';
@@ -15,7 +16,7 @@ import dir from './paths.js';
 import args from '../utils/args.js';
 
 export const getPlugins = (scopeGenerator) => { 
-  return [
+  let plugins = [
     stylePlugin({
       cssModulesMatch: /\.s?css$/,
       renderOptions: {
@@ -35,6 +36,23 @@ export const getPlugins = (scopeGenerator) => {
     mySvg(dir.app, dir.dist, args.splitSvg),
     polyfillNode(),
     envFilePlugin,
-    // nodeExternalsPlugin({})
-  ];
+  ]
+
+  if (args.generateDts) {
+    plugins = [
+      ...plugins,
+      dtsPlugin()
+    ]
+  }
+
+  if (args.allowModules) {
+    plugins = [
+      ...plugins,
+      nodeExternalsPlugin({
+        allowList: args.allowModules.split(',')
+      })
+    ]
+  }
+
+  return plugins;
 }

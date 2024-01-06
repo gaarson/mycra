@@ -2,7 +2,7 @@ process.env.NODE_ENV = 'development';
 
 import esbuild from 'esbuild';
 import http from 'node:http';
-import url from 'node:url';
+import url from 'url';
 import fs from 'node:fs';
 import fsExtra from 'fs-extra'
 import path from 'path';
@@ -24,6 +24,8 @@ import { MIME_FILES_MAP, DEFAULT_PORT, DEFAULT_HOST } from '../constants.js';
 
 const HOST = process.env.HOST || DEFAULT_HOST;
 const PORT = process.env.PORT || DEFAULT_PORT;
+
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
 const updateFileList = async (directoryToWatch) => {
   const res = await glob(directoryToWatch + '/**/*', { nodir: true });
@@ -82,28 +84,35 @@ const getHTMLTemplate = (pathname) => {
     fs.exists(pathname, function (exist) {
       if(!exist) {
         console.error('File doesn`t exists');
-        reject();
+        resolve('');
       }
 
-      if (fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
+      if (exist && fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
 
-      fs.readFile(pathname, 'utf8', function(err, data){
-        if(err){
-          console.error('ERROR: ', err);
-        } else {
-          resolve(data);
-        }
-      });
+      if (exist) {
+        fs.readFile(pathname, 'utf8', function(err, data){
+          if(err){
+            console.error('ERROR: ', err);
+          } else {
+            resolve(data);
+          }
+        });
+      }
     });
   })
 };
 
 (async () => {
-  if (fsExtra.existsSync(dir.dist)) {
+  if (fsExtra.existsSync(dir.dist) 
+    && path.dirname(dir.dist) !== path.dirname(dir.root)) {
     fsExtra.removeSync(dir.dist);
     console.log(`Directory "${dir.dist}" removed successfully.`);
   } else {
-    console.error(`Directory "${dir.dist}" does not exist.`);
+    if (path.dirname(dir.dist) === path.dirname(dir.root)) {
+      console.error(`Directory dist and root same.`);
+    } else {
+      console.error(`Directory "${dir.dist}" does not exist.`);
+    }
   }
   const htmlFilePath = `${dir.public}/${args.template}`;
   const rawHTML = await getHTMLTemplate(htmlFilePath);
@@ -143,15 +152,17 @@ const getHTMLTemplate = (pathname) => {
           fsExtra.copySync(publcFilePath, `${dir.dist}/${path.basename(publcFilePath)}`);
         }
       }
-      fs.writeFile(
-        `${dir.dist}/${args.template}`, 
-        html, 
-        (err) => {
-          if (err) {
-            console.error('Error writing HTML file:', err);
+      if (html) {
+        fs.writeFile(
+          `${dir.dist}/${args.template}`, 
+          html, 
+          (err) => {
+            if (err) {
+              console.error('Error writing HTML file:', err);
+            }
           }
-        }
-      );
+        );
+      }
     }
   }
 

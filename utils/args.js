@@ -9,8 +9,10 @@ const argsDefinitions = [
   { name: 'public', alias: 'pb', type: String, default: 'public' },
   { name: 'platform', alias: 'pt', type: String, default: 'browser' },
   { name: 'source-map', alias: 'sm', type: Boolean },
+  { name: 'generateDts', alias: 'dts', type: Boolean },
   { name: 'ci', type: Boolean },
   { name: 'includeModules', alias: 'im', type: String, default: undefined },
+  { name: 'allowModules', alias: 'am', type: String, default: undefined },
   { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false },
   { name: 'template', type: String, alias: 't', default: 'index.html' }
 ];
