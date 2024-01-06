@@ -7,6 +7,7 @@ const argsDefinitions = [
   { name: 'coverage', alias: 'c', type: Boolean },
   { name: 'devServer', alias: 'ds', type: Boolean },
   { name: 'public', alias: 'pb', type: String, default: 'public' },
+  { name: 'platform', alias: 'pt', type: String, default: 'browser' },
   { name: 'source-map', alias: 'sm', type: Boolean },
   { name: 'ci', type: Boolean },
   { name: 'skipTypeChecking', alias: 'stc', type: Boolean, default: false },

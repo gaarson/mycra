@@ -7,6 +7,9 @@
   "author": "",
   "type": "module",
   "module": true,
+  "scripts": {
+    "build": "node ./bin/mycra.js build -p ./ -pt node"
+  },
   "license": "ISC",
   "dependencies": {
     "@phenomnomnominal/tsquery": "^6.1.3",

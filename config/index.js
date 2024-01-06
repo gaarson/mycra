@@ -47,11 +47,18 @@ const grabComponentsDirecrories = (src, ext) => {
 
 let entry;
 
-if (fsExtra.existsSync(`${dir.app}/index.tsx`)) {
+if (fsExtra.existsSync(`${dir.app}/index.js`)) {
+  entry = [`${dir.app}/index.js`];
+} else if (fsExtra.existsSync(`${dir.app}/index.jsx`)) {
+  entry = [`${dir.app}/index.js`];
+} else if (fsExtra.existsSync(`${dir.app}/index.ts`)) {
+  entry = [`${dir.app}/index.js`];
+} else if (fsExtra.existsSync(`${dir.app}/index.tsx`)) {
   entry = [`${dir.app}/index.tsx`];
 } else {
   entry = grabComponentsDirecrories(dir.app, /\.[jt]sx?$/);
 }
+
 const env = Object.keys(process.env)
   .filter((key) => key.startsWith(APP_ENV_KEY))
   .reduce((acc, curr) => ({ 
@@ -63,7 +70,7 @@ export const getConfig = () => ({
     entryPoints: entry,
     bundle: true,
     outdir: dir.dist,
-    platform: 'browser',
+    platform: args.platform,
     define: {
       'process.env.NODE_ENV': JSON.stringify(buildMode.type),
       'glob': `{ "env": ${JSON.stringify(env)} }`,
