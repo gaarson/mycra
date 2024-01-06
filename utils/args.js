@@ -10,7 +10,6 @@ const argsDefinitions = [
   { name: 'platform', alias: 'pt', type: String, default: 'browser' },
   { name: 'source-map', alias: 'sm', type: Boolean },
   { name: 'ci', type: Boolean },
-  { name: 'skipTypeChecking', alias: 'stc', type: Boolean, default: false },
   { name: 'includeModules', alias: 'im', type: String, default: undefined },
   { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false },
   { name: 'template', type: String, alias: 't', default: 'index.html' }
