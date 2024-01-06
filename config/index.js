@@ -23,10 +23,17 @@ if (args['source-map']) {
 const baseFileName = '[name].[hash]';
 
 const includeModules = args.includeModules ? args.includeModules.split(',').reduce((prev, curr) => {
-  return {
-    ...prev,
-    [curr]: `${dir.root}/${curr}`
-  };
+  if (curr.indexOf(':') !== -1) {
+    const [module, modulePath] = curr.split(':');
+    return {
+      [curr]: modulePath
+    };
+  } else {
+    return {
+      ...prev,
+      [curr]: `${dir.root}/${curr}`
+    };
+  }
 }, {}) : null;
 
 const grabComponentsDirecrories = (src, ext) => {
