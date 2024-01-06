@@ -10,10 +10,10 @@ const svgSymbolsGenerator = (distDir) => {
 </mask>
   ${Object.keys(svgs).reduce((str, key) => {
     return str + `${svgs[key]
-    .replace(/<svg\s+([^>]*\s)?width=['"][^'"]*['"]/, '<svg$1')
-    .replace(/<svg\s+([^>]*\s)?height=['"][^'"]*['"]/, '<svg$1')
-    .replace('<svg', `<symbol id="${key}"`)
-    .replace('svg>', 'symbol>')}\n`;
+      .replace(/<svg\s+([^>]*\s)?width=['"][^'"]*['"]/, '<svg$1')
+      .replace(/<svg\s+([^>]*\s)?height=['"][^'"]*['"]/, '<svg$1')
+      .replace('<svg', `<symbol id="${key}"`)
+      .replace('svg>', 'symbol>')}\n`;
   }, '')}
 </svg>`;
 
@@ -28,8 +28,6 @@ const svgSymbolsGenerator = (distDir) => {
     fs.writeFile(`${distDir}/svg-insert.js`, content, (err) => {
       if (err) {
         console.error(`Error writing file: ${err}`);
-      } else {
-        // console.log(`File written successfully: ${distDir}/svg-insert.js`);
       }
     });
   } else {
@@ -37,8 +35,6 @@ const svgSymbolsGenerator = (distDir) => {
     fs.writeFile(`${distDir}/svg-insert.js`, content, (err) => {
       if (err) {
         console.error(`Error writing file: ${err}`);
-      } else {
-        console.log(`File written successfully: ${distDir}/svg-insert.js`);
       }
     });
   }
@@ -84,9 +80,7 @@ export const mySvg = (workDir, distDir, isSplitSvg) => ({
   setup(build) {
     if (isSplitSvg) {
       build.onResolve({ filter: /\.svg\?react$/ }, args => {
-        return {
-          path: path.join(args.resolveDir, args.path),
-        };
+        return { path: path.join(args.resolveDir, args.path) };
       })
       build.onLoad({ filter: /\.svg\?react$/ }, createOnLoad(distDir))
     } else {

@@ -14,7 +14,7 @@ export const App = () => {
   return (
     <section>
       <Img2 styleName={countStyles()} />
-      <div className="global-claas">aaaaaaa</div>
+      <div className="global-claas">a24111112</div>
       <div className="global-class" styleName="some-style"> aa HTLMWEF </div>
       <Component />
     </section>

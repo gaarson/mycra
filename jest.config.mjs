@@ -1,10 +1,12 @@
-const path = require('path');
-const paths = require('./config/paths');
-const args = require('./utils/args');
-const env = require('./config/env');
-const babelOptions = require('./babel.config');
+import url from 'url';
+import path from 'path';
+import paths from './config/paths.js';
+import args from './utils/args.js';
+import env from './config/env.js';
 
-module.exports = {
+const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+
+export default {
   rootDir: paths.root,
   collectCoverageFrom: [
     `**/*.{${args.language}?(x)}`,
@@ -17,24 +19,20 @@ module.exports = {
     // '[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$',
   ],
   transform: {
-    '^.+\\.(js|jsx|tsx)$': [require.resolve('babel-jest'), babelOptions],
-    '^.+\\.(ts)$': require.resolve('ts-jest'),
-    '^.+\\.svg$': require.resolve('jest-transformer-svg'),
+    '^.+\\.(ts|js|jsx|tsx)$': path.join(__dirname, './node_modules/esbuild-runner/jest.js'),
+    '^.+\\.svg$': path.join(__dirname, './node_modules/jest-transformer-svg/lib/index.js'),
     '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^.+\?raw$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^(?!.*\\.(js|jsx|css|json)$)': `${path.join(__dirname, '/config')}/jest/file.js`,
   },
   globals: {
-    "ts-jest": {
-      tsconfig: `${paths.root}/tsconfig.jest.json`,
-    },
     customEnv: env,
     glob: env,
   },
   moduleNameMapper: {
     "@/(.*)": paths.app,
-    '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.${args.language}`,
-    '^.+\?raw$': require.resolve('jest-raw-loader'),
+    '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.ts`,
+    '^.+\?raw$': path.join(__dirname, './node_modules/jest-raw-loader/index.js'),
   },
   testEnvironment: 'jsdom',
   testEnvironmentOptions: {
@@ -43,8 +41,8 @@ module.exports = {
   setupFiles: [`${path.join(__dirname, '/config')}/jest/setupEnv.js`],
   setupFilesAfterEnv: [`./${args.path}/setupTests.js`],
   testMatch: [
-    `**/__tests__/**/*.${args.language}?(x)`,
-    `**/?(*.)(spec|test).${args.language}?(x)`,
+    `**/__tests__/**/*.ts?(x)`,
+    `**/?(*.)(spec|test).ts?(x)`,
   ],
   moduleFileExtensions: [
     'web.js',

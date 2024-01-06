@@ -5,10 +5,11 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "build": "our-scripts build -p app",
+    "build": "our-scripts build -p app -s",
     "dev-lib-server": "our-scripts start -p lib -d lib-dist",
-    "dev-server": "our-scripts start -p app -ssvg",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev-server": "our-scripts start -p app -ssvg -ds",
+    "dev": "our-scripts start -p app -ssvg -s",
+    "test": "our-scripts test -p app"
   },
   "author": "",
   "license": "ISC",
@@ -16,5 +17,10 @@
     "our-scripts": "file:..",
     "react": "^18.2.0",
     "react-dom": "^18.2.0"
+  },
+  "devDependencies": {
+    "@testing-library/jest-dom": "^6.2.0",
+    "@testing-library/react": "^14.1.2",
+    "react-test-renderer": "^18.2.0"
   }
 }

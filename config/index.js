@@ -20,9 +20,7 @@ if (args['source-map']) {
   devtool = buildMode.isDevelop() ? devtoolDev : undefined;
 }
 
-const baseFileName = buildMode.isDevelop() || buildMode.isTest() 
-  ? '[name]' 
-  : '[name].[hash:8]';
+const baseFileName = '[name].[hash]';
 
 const includeModules = args.includeModules ? args.includeModules.split(',').reduce((prev, curr) => {
   return {
@@ -34,7 +32,6 @@ const includeModules = args.includeModules ? args.includeModules.split(',').redu
 const grabComponentsDirecrories = (src, ext) => {
   const list = fs.readdirSync(src);
   let result = [];
-
 
   for (const name of list) {
     if (
@@ -68,22 +65,23 @@ export const getConfig = () => ({
     outdir: dir.dist,
     platform: 'browser',
     define: {
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV || 'production'),
+      'process.env.NODE_ENV': JSON.stringify(buildMode.type),
       'glob': `{ "env": ${JSON.stringify(env)} }`,
     },
     assetNames: `assets/${baseFileName}`,
-    chunkNames: `${baseFileName}.chunk`,
-    entryNames: `${baseFileName}`,
-    // write: true,
-    jsxSideEffects: true,
-    allowOverwrite: true,
-    // format: 'esm',
-    sourcemap: 'both',
-    treeShaking: true,
+    chunkNames: baseFileName,
+    entryNames: baseFileName,
+    allowOverwrite: buildMode.type === 'production' ? false : true,
+    minify: buildMode.type === 'production' ? true : false,
+    splitting: true,
+    format: 'esm',
+    sourcemap: buildMode.type === 'production' ? false : 'both',
+    treeShaking: buildMode.type === 'production' ? true : false,
     metafile: true,
     absWorkingDir: dir.root,
-    nodePaths: includeModules ? Object.values(includeModules) : undefined,
-    // external: includeModules ? Object.values(includeModules) : undefined,
+    nodePaths: includeModules 
+      ? Object.values(includeModules) 
+      : undefined,
     plugins: getPlugins(buildMode.simpleClassHash),
     jsx: 'transform',
     alias: {

@@ -18,22 +18,17 @@ const getCSSTemplate = (pathname) => {
   return new Promise((resolve, reject) => {
     fs.exists(pathname, function (exist) {
       if(!exist) {
-        // if the file is not found, return 404
         console.error('File doesn`t exists');
         reject();
       }
 
-      // if is a directory search for index file matching the extension
       if (fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
 
-      // read file from file system
       fs.readFileSync(pathname, 'utf8', function(err, data){
         if(err){
           console.error('ERROR: ', err);
         } else {
-          // console.log('DATA', data);
           resolve(data);
-          // if the file is found, set Content-type and send data
         }
       });
     });
@@ -58,11 +53,6 @@ export const getPlugins = (scopeGenerator) => ([
   }),
   styleNamePlugin(scopeGenerator || buildMode.simpleClassHash),
   mySvg(dir.app, dir.dist, args.splitSvg),
-  // environmentPlugin({
-  //   glob: {
-  //     VAL: 'AA'
-  //   },
-  // })
   polyfillNode(),
   envFilePlugin,
   // nodeExternalsPlugin()

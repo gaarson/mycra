@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["temp_stylePlugin:app/style.css", "temp_stylePlugin:app/Component.scss", "temp_stylePlugin:app/style.sass"],
-  "sourcesContent": [" .icon {\n  background-color: grey;\n }\n.count_1885577511 {\n  width: 10px;\n}\n .get-mc-style_1786187813 {}\n .get-style_1366969500 {\n\n }\n\n.some-style_2012923966 {\n  color: blue;\n  background-color: red;\n}\n", ".class_1823486985 {\n  color: green;\n}\n\n.image_-1005954004 {\n  width: 100px;\n}\n\n.new-class_739673564 {\n  background-color: orange;\n}", "@charset \"UTF-8\";\n/* \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014 Primary colors \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014 */\n.icon {\n  font-size: 20px;\n  margin: 0 calc(#8daffd - #1A5FFA - 3px);\n}"],
-  "mappings": ";;;AAAC,CAAC;AACA,oBAAkB;AACnB;AACD,CAAC;AACC,SAAO;AACT;AACC,CAAC;AAAyB;AAC1B,CAAC;AAED;AAED,CAAC;AACC,SAAO;AACP,oBAAkB;AACpB;;;ACdA,CAAC;AACC,SAAO;AACT;AAEA,CAAC;AACC,SAAO;AACT;AAEA,CAAC;AACC,oBAAkB;AACpB;;;ACRA,CAAC;AACC,aAAW;AACX,UAAQ,EAAE,KAAK,QAAQ,EAAE,QAAQ,EAAE;AACrC;",
-  "names": []
-}
