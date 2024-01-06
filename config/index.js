@@ -26,6 +26,7 @@ const includeModules = args.includeModules ? args.includeModules.split(',').redu
   if (curr.indexOf(':') !== -1) {
     const [module, modulePath] = curr.split(':');
     return {
+      ...prev,
       [module]: modulePath
     };
   } else {
