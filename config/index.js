@@ -34,12 +34,22 @@ const grabComponentsDirecrories = (src, ext) => {
   let result = [];
 
   for (const name of list) {
-    if (
-      !fs.lstatSync(`${src}/${name}`, { withFileTypes: true }).isDirectory() && 
-      ext.test(path.extname(name))
-    ) {
+    const isDirectory = fs.lstatSync(`${src}/${name}`, { withFileTypes: true }).isDirectory();
+    if (!isDirectory && ext.test(path.extname(name))) {
       result = [...result, `${src}/${name}`];
     } 
+    if (isDirectory && fsExtra.existsSync(`${src}/${name}/index.js`)) {
+      result = [...result, `${src}/${name}/index.js`];
+    }
+    if (isDirectory && fsExtra.existsSync(`${src}/${name}/index.jsx`)) {
+      result = [...result, `${src}/${name}/index.jsx`];
+    }
+    if (isDirectory && fsExtra.existsSync(`${src}/${name}/index.ts`)) {
+      result = [...result, `${src}/${name}/index.ts`];
+    }
+    if (isDirectory && fsExtra.existsSync(`${src}/${name}/index.tsx`)) {
+      result = [...result, `${src}/${name}/index.tsx`];
+    }
   }
 
   return result;
