@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import { nodeExternalsPlugin } from 'esbuild-node-externals';
 import svgr from 'esbuild-plugin-svgr';
 import envFilePlugin from 'esbuild-envfile-plugin';
 import stylePlugin from 'esbuild-style-plugin'
@@ -42,22 +41,6 @@ export const getPlugins = (scopeGenerator) => {
     plugins = [
       ...plugins,
       dtsPlugin()
-    ]
-  }
-
-  if (args.excludeModules) {
-    plugins = [
-      ...plugins,
-      nodeExternalsPlugin()
-    ]
-  }
-
-  if (args.allowModules) {
-    plugins = [
-      ...plugins,
-      nodeExternalsPlugin({
-        allowList: args.allowModules.split(',')
-      })
     ]
   }
 

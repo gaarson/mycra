@@ -84,9 +84,20 @@ const env = Object.keys(process.env)
     [curr.replace(APP_ENV_KEY, '')]: process.env[curr] || '',
   }), { buildMode: buildMode.type })
 
+let bundleSettings = {
+  bundle: true,
+  splitting: true,
+  format: 'esm',
+  alias: {
+    'src': dir.app,
+    '@': dir.app,
+    ...(includeModules ? includeModules : {})
+  },
+}
+
 export const getConfig = () => ({
+    ...bundleSettings,
     entryPoints: entry,
-    bundle: true,
     outdir: dir.dist,
     platform: args.platform,
     define: {
@@ -98,8 +109,6 @@ export const getConfig = () => ({
     entryNames: entry.length > 1 ? `[dir]/[name]` : baseFileName,
     allowOverwrite: buildMode.type === 'production' ? false : true,
     minify: buildMode.type === 'production' ? true : false,
-    splitting: true,
-    format: 'esm',
     sourcemap: buildMode.type === 'production' ? false : 'both',
     treeShaking: buildMode.type === 'production' ? true : false,
     metafile: true,
@@ -107,13 +116,9 @@ export const getConfig = () => ({
     nodePaths: includeModules 
       ? Object.values(includeModules) 
       : undefined,
+    packages: args.excludeModules ? 'external' : undefined,
     plugins: getPlugins(buildMode.simpleClassHash),
     jsx: 'transform',
-    alias: {
-      'src': dir.app,
-      '@': dir.app,
-      ...(includeModules ? includeModules : {})
-    },
     loader: {
       '.png': 'dataurl',
       '.eot': 'dataurl',
