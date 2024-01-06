@@ -9,7 +9,7 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 export default {
   rootDir: paths.root,
   collectCoverageFrom: [
-    `**/*.{${args.language}?(x)}`,
+    `**/*.ts?(x)}`,
   ],
   moduleDirectories: [
     'node_modules',
@@ -32,7 +32,7 @@ export default {
   moduleNameMapper: {
     "@/(.*)": paths.app,
     '\\.svg': `${path.join(__dirname, '/__mocks__')}/fileMock.ts`,
-    '^.+\?raw$': path.join(__dirname, './node_modules/jest-raw-loader/index.js'),
+    '^.+\?raw$': path.join(__dirname, './node_modules/jest-raw-loader/lib/index.js'),
   },
   testEnvironment: 'jsdom',
   testEnvironmentOptions: {
