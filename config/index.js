@@ -107,7 +107,7 @@ export const getConfig = () => ({
     assetNames: `assets/${baseFileName}`,
     chunkNames: entry.length > 1 ? `chunks/[hash].[name]` : baseFileName,
     entryNames: entry.length > 1 ? `[dir]/[name]` : baseFileName,
-    allowOverwrite: buildMode.type === 'production' ? false : true,
+    allowOverwrite: args.allowOverwrite,
     minify: buildMode.type === 'production' ? true : false,
     sourcemap: buildMode.type === 'production' ? false : 'both',
     treeShaking: buildMode.type === 'production' ? true : false,

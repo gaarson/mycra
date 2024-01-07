@@ -103,129 +103,132 @@ const getHTMLTemplate = (pathname) => {
 };
 
 (async () => {
-  if (fsExtra.existsSync(dir.dist) 
-    && path.dirname(dir.dist) !== path.dirname(dir.root)) {
-    fsExtra.removeSync(dir.dist);
-    console.log(`Directory "${dir.dist}" removed successfully.`);
-  } else {
-    if (path.dirname(dir.dist) === path.dirname(dir.root)) {
-      console.error(`Directory dist and root same.`);
+  try {
+    if (fsExtra.existsSync(dir.dist) 
+      && path.dirname(dir.dist) !== path.dirname(dir.root)) {
+      fsExtra.removeSync(dir.dist);
+      console.log(`Directory "${dir.dist}" removed successfully.`);
     } else {
-      console.error(`Directory "${dir.dist}" does not exist.`);
-    }
-  }
-  const htmlFilePath = `${dir.public}/${args.template}`;
-  const rawHTML = await getHTMLTemplate(htmlFilePath);
-  const publicFiles = await updateFileList(dir.public);
-  let html = rawHTML;
-
-  let ctx = await esbuild.context(getConfig())
-
-  await ctx.watch()
-  
-  let scripts = [];
-  let styles = [];
-
-  const redrawHTML = async () => {
-    let newHTML = rawHTML.replace('<!--[styles]-->', styles.reduce((stylesStr, styleSrc) => {
-      return stylesStr + `<link rel="stylesheet" type="text/css" href="${styleSrc}">\n`
-    }, ''))
-    html = newHTML.replace('<!--[scripts]-->', scripts.reduce((scriptStr, scriptSrc) => {
-      return scriptStr + `<script type="module" src="${scriptSrc}"></script>\n`
-    }, `<script>new EventSource('/esbuild').addEventListener('change', () => location.reload())</script>\n`))
-
-    if (args.size) {
-      const distFiles = (await updateFileList(dir.dist))
-      .filter(s => {
-        console.log('AAAAAA', s, publicFiles.some(f => path.basename(f) === path.basename(s)));
-        return path.extname(s) === '.js' && !publicFiles.some(f => path.basename(f) === path.basename(s));
-      })
-      console.log('DIST', distFiles);
-      sizeLimit([filePlugin, sizeLimitEsbuild], distFiles).then(result => {
-        console.log(distFiles, result);
-      })
-    }
-
-    if (!args.devServer) {
-      for (const publcFilePath of publicFiles) {
-        if (path.basename(publcFilePath) !== args.template) {
-          fsExtra.copySync(publcFilePath, `${dir.dist}/${path.basename(publcFilePath)}`);
-        }
-      }
-      if (html) {
-        fs.writeFile(
-          `${dir.dist}/${args.template}`, 
-          html, 
-          (err) => {
-            if (err) {
-              console.error('Error writing HTML file:', err);
-            }
-          }
-        );
-      }
-    }
-  }
-
-  startWatching(dir.dist, (changedFile) => {
-    if (path.extname(changedFile) === '.js') scripts = [...scripts, changedFile];
-    if (path.extname(changedFile) === '.css') styles = [...styles, changedFile];
-    redrawHTML();
-  }, (removedFile) => {
-    if (path.extname(removedFile) === '.js') scripts = scripts.filter(i => i !== removedFile);
-    if (path.extname(removedFile) === '.css') styles = styles.filter(i => i !== removedFile);
-    redrawHTML();
-  });
-
-  if (args.devServer) {
-    let { host, port } = await ctx.serve({ servedir: dir.dist })
-    http.createServer(async (req, res) => {
-      const options = {
-        hostname: host,
-        port: port,
-        path: req.url,
-        method: req.method,
-        headers: req.headers,
-      }
-      const parsedUrl = url.parse(req.url);
-      const publicPathName = `${dir.public}${parsedUrl.pathname}`;
-      const distPathName = `${dir.dist}${parsedUrl.pathname}`
-
-      const newHTMLFilePath = `${dir.dist}/${args.template}`
-
-      if (parsedUrl.pathname === '/') {
-        res.writeHead(200, {'Content-Type': 'text/html'});
-        res.write(html);
-        res.end();
-      } else if (parsedUrl.pathname === '/esbuild') { // hot-reload
-        const proxyReq = http.request(options, proxyRes => {
-          if (proxyRes.statusCode === 404) {
-            res.writeHead(200, {'Content-Type': 'text/html'});
-            res.write(html);
-            res.end();
-            return 
-          }
-
-          res.writeHead(proxyRes.statusCode, proxyRes.headers)
-          proxyRes.pipe(res, { end: true })
-        });
-
-        req.pipe(proxyReq, { end: true });
-      } else if (MIME_FILES_MAP[path.extname(parsedUrl.pathname)]) {
-        if (await checkFileExists(publicPathName)) {
-          sendFile(publicPathName, res);
-        } else if (await checkFileExists(distPathName)) {
-          sendFile(distPathName, res);
-        } else {
-          res.writeHead(404, {'Content-Type': 'text/html'});
-          res.end(undefined)
-        }
+      if (path.dirname(dir.dist) === path.dirname(dir.root)) {
+        console.error(`Directory dist and root same.`);
       } else {
-        res.writeHead(200, {'Content-Type': 'text/html'});
-        res.write(html);
-        res.end();
+        console.error(`Directory "${dir.dist}" does not exist.`);
+      }
+    }
+    const htmlFilePath = `${dir.public}/${args.template}`;
+    const rawHTML = await getHTMLTemplate(htmlFilePath);
+    const publicFiles = await updateFileList(dir.public);
+    let html = rawHTML;
+
+    let ctx = await esbuild.context(getConfig())
+
+    await ctx.watch()
+    
+    let scripts = [];
+    let styles = [];
+
+    const redrawHTML = async () => {
+      let newHTML = rawHTML.replace('<!--[styles]-->', styles.reduce((stylesStr, styleSrc) => {
+        return stylesStr + `<link rel="stylesheet" type="text/css" href="${styleSrc}">\n`
+      }, ''))
+      html = newHTML.replace('<!--[scripts]-->', scripts.reduce((scriptStr, scriptSrc) => {
+        return scriptStr + `<script type="module" src="${scriptSrc}"></script>\n`
+      }, `<script>new EventSource('/esbuild').addEventListener('change', () => location.reload())</script>\n`))
+
+      if (args.size) {
+        const distFiles = (await updateFileList(dir.dist))
+        .filter(s => {
+          console.log('AAAAAA', s, publicFiles.some(f => path.basename(f) === path.basename(s)));
+          return path.extname(s) === '.js' && !publicFiles.some(f => path.basename(f) === path.basename(s));
+        })
+        console.log('DIST', distFiles);
+        sizeLimit([filePlugin, sizeLimitEsbuild], distFiles).then(result => {
+          console.log(distFiles, result);
+        })
       }
 
-    }).listen(PORT, HOST)
-  }
+      if (!args.devServer) {
+        for (const publcFilePath of publicFiles) {
+          if (path.basename(publcFilePath) !== args.template) {
+            fsExtra.copySync(publcFilePath, `${dir.dist}/${path.basename(publcFilePath)}`);
+          }
+        }
+        if (html) {
+          fs.writeFile(
+            `${dir.dist}/${args.template}`, 
+            html, 
+            (err) => {
+              if (err) {
+                console.error('Error writing HTML file:', err);
+              }
+            }
+          );
+        }
+      }
+    }
 
+    startWatching(dir.dist, (changedFile) => {
+      if (path.extname(changedFile) === '.js') scripts = [...scripts, changedFile];
+      if (path.extname(changedFile) === '.css') styles = [...styles, changedFile];
+      redrawHTML();
+    }, (removedFile) => {
+      if (path.extname(removedFile) === '.js') scripts = scripts.filter(i => i !== removedFile);
+      if (path.extname(removedFile) === '.css') styles = styles.filter(i => i !== removedFile);
+      redrawHTML();
+    });
+
+    if (args.devServer) {
+      let { host, port } = await ctx.serve({ servedir: dir.dist })
+      http.createServer(async (req, res) => {
+        const options = {
+          hostname: host,
+          port: port,
+          path: req.url,
+          method: req.method,
+          headers: req.headers,
+        }
+        const parsedUrl = url.parse(req.url);
+        const publicPathName = `${dir.public}${parsedUrl.pathname}`;
+        const distPathName = `${dir.dist}${parsedUrl.pathname}`
+
+        const newHTMLFilePath = `${dir.dist}/${args.template}`
+
+        if (parsedUrl.pathname === '/') {
+          res.writeHead(200, {'Content-Type': 'text/html'});
+          res.write(html);
+          res.end();
+        } else if (parsedUrl.pathname === '/esbuild') { // hot-reload
+          const proxyReq = http.request(options, proxyRes => {
+            if (proxyRes.statusCode === 404) {
+              res.writeHead(200, {'Content-Type': 'text/html'});
+              res.write(html);
+              res.end();
+              return 
+            }
+
+            res.writeHead(proxyRes.statusCode, proxyRes.headers)
+            proxyRes.pipe(res, { end: true })
+          });
+
+          req.pipe(proxyReq, { end: true });
+        } else if (MIME_FILES_MAP[path.extname(parsedUrl.pathname)]) {
+          if (await checkFileExists(publicPathName)) {
+            sendFile(publicPathName, res);
+          } else if (await checkFileExists(distPathName)) {
+            sendFile(distPathName, res);
+          } else {
+            res.writeHead(404, {'Content-Type': 'text/html'});
+            res.end(undefined)
+          }
+        } else {
+          res.writeHead(200, {'Content-Type': 'text/html'});
+          res.write(html);
+          res.end();
+        }
+
+      }).listen(PORT, HOST)
+    }
+  } catch (error) {
+    console.error('ERRRRRRRRRRRRRRE', error);
+  }
 })();
