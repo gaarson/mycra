@@ -72,7 +72,7 @@ const getHTMLTemplate = (pathname) => {
       return html.replace('<!--[styles]-->', styles.reduce((stylesStr, styleSrc) => {
         return stylesStr + `<link rel="stylesheet" type="text/css" href="${styleSrc}">\n`
       }, '')).replace('<!--[scripts]-->', scripts.reduce((scriptStr, scriptSrc) => {
-        return scriptStr + `<script src="${scriptSrc}"></script>\n`
+        return scriptStr + `<script type="module" src="${scriptSrc}"></script>\n`
       }, ''))
     }
 
