@@ -72,7 +72,7 @@ const getImportedCssFiles = async (tsTree, pathname, scopeGenerator) => {
   return filesMap;
 }
 
-const changeStyleNametoClassName = (tsTree, modulesMap) => {
+const changeStyleNameToClassName = (tsTree, modulesMap) => {
   return map(tsTree, 'JsxAttribute[name.name=styleName]', (node) => {
     let styleNameExp = match(node.parent, 'JsxAttribute[name.name=styleName] JsxExpression')
     let styleNameString;// = match(node.parent, 'JsxAttribute[name.name=styleName] StringLiteral');
@@ -109,7 +109,7 @@ const changeStyleNametoClassName = (tsTree, modulesMap) => {
             res = '`${' + classNodeExpStr + '} ' + '${'+ styleNameString + '}`';
           }
           if (styleNameExp) {
-            res = "`${("+ styleNameExp + " || '').trim().split(' ').map(s => JSON.parse('" + JSON.stringify(modulesMap) + "')[s]).join(' ')}`";
+            res = '`${' + classNodeExpStr + '} ' + "${("+ styleNameExp + " || '').trim().split(' ').map(s => JSON.parse('" + JSON.stringify(modulesMap) + "')[s]).join(' ')}`";
           }
 
           const express = match(ast(`<a t={${res}} />`), 'JsxExpression');
@@ -148,7 +148,7 @@ export const styleNamePlugin = (scopeGenerator) => ({
       const tree = ast(sourceCode);
 
       const modulesMap = await getImportedCssFiles(tree, path.dirname(args.path), scopeGenerator);
-      const newSourceCode = changeStyleNametoClassName(tree, modulesMap);
+      const newSourceCode = changeStyleNameToClassName(tree, modulesMap);
 
       return { 
         contents: print(newSourceCode), 
