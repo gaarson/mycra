@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "baseUrl": "./",
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "noImplicitAny": false,
+    "esModuleInterop": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "lib": ["ESNext", "dom"],
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true,
+    "downlevelIteration": true,
+    "module": "esNext",
+    "target": "es6",
+    "jsx": "preserve",
+    "paths": { "@/*": ["app/*"] }
+  },
+  "exclude": ["node_modules"],
+  "include": ["app", "editor-src", "types/custom.d.ts", "types/global.d.ts"]
+}

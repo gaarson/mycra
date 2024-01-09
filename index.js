@@ -1,47 +1,23 @@
-const paths = require('./config/paths');
-const args = require('./utils/args');
-const buildMode = require('./config/buildMode');
+import paths from './config/paths.js';
+import args from './utils/args.js';
+import buildMode from './config/buildMode.js';
 
-module.exports = () => {
-  if (args.server) {
-    switch (buildMode.type) {
-      case 'development': {
-        require('./scripts/dev-server');
-        break;
-      }
-      case 'production': {
-        require('./scripts/prod-server');
-        break;
-      }
-      // case 'test': {
-      //   require('./scripts/test');
-      //   break;
-      // }
-      default: {
-        console.error('ERROR: choose command to evalueate');
-      }
+export default () => {
+  switch (buildMode.type) {
+    case 'development': {
+      import('./scripts/es-server.js');
+      break;
     }
-  } else {
-    switch (buildMode.type) {
-      case 'es-production': {
-        require('./scripts/es');
-        break;
-      }
-      case 'development': {
-        require('./scripts/dev');
-        break;
-      }
-      case 'production': {
-        require('./scripts/prod');
-        break;
-      }
-      case 'test': {
-        require('./scripts/test');
-        break;
-      }
-      default: {
-        console.error('ERROR: choose command to evalueate');
-      }
+    case 'production': {
+      import('./scripts/es-build.js');
+      break;
+    }
+    case 'test': {
+      import('./scripts/es-test.js');
+      break;
+    }
+    default: {
+      console.error('ERROR: choose command to evalueate');
     }
   }
 };

@@ -1,5 +1,5 @@
-const path = require('path');
-const args = require('../utils/args');
+import path from 'path';
+import args from '../utils/args.js';
 
 const root = path.join(process.cwd());
 
@@ -11,7 +11,7 @@ const modeMap = new Map([
 
 const mode = modeMap.get(process.argv[2]);
 
-module.exports = {
+export default {
   root,
   app: path.join(root, args.path || 'app'),
   dist: path.join(root, args.outputDir),
