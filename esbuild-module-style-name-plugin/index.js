@@ -55,6 +55,7 @@ const getImportedCssFiles = async (tsTree, pathname, scopeGenerator) => {
   );
 
   for (const astNode of cssImports) {
+    // console.log('CSS IMPORTS', print(astNode));
     const css = await getCSSTemplate(path.join(pathname, astNode.text));
     const res = await postcss([
       cssModules({ 
@@ -73,10 +74,11 @@ const getImportedCssFiles = async (tsTree, pathname, scopeGenerator) => {
 }
 
 const changeStyleNameToClassName = (tsTree, modulesMap) => {
+  // console.log('PATH', path);
   return map(tsTree, 'JsxAttribute[name.name=styleName]', (node) => {
     let styleNameExp = match(node.parent, 'JsxAttribute[name.name=styleName] JsxExpression')
-    let styleNameString;// = match(node.parent, 'JsxAttribute[name.name=styleName] StringLiteral');
-
+    let styleNameString;
+    
     if (!styleNameExp.length) {
       styleNameString = match(node.parent, 'JsxAttribute[name.name=styleName] StringLiteral');
       if (styleNameString.length) {
@@ -84,37 +86,36 @@ const changeStyleNameToClassName = (tsTree, modulesMap) => {
       } else {
         styleNameString = '';
       }
-      styleNameExp = undefined;
+      styleNameExp = '';
     } else {
       styleNameExp = print(styleNameExp[0]);
       styleNameExp = `${styleNameExp ? styleNameExp.slice(1, -1) : ''}`;
     }
 
-    const classNameString = match(node.parent, 'JsxAttribute[name.name=className] StringLiteral');
+    const classNameExp = match(node.parent, 'JsxAttribute[name.name=className] JsxExpression');
 
-    if (classNameString.length) {
-      node.parent = map(node.parent, 'JsxAttribute[name.name=className] StringLiteral', (classNameStringNode) => {
-        classNameStringNode.text = `${classNameStringNode.text} ${styleNameString ? styleNameString.slice(1, -1) : styleNameExp}`
+    if (classNameExp.length && (styleNameExp || styleNameString)) {
+      node.parent = map(node.parent, 'JsxAttribute[name.name=className] JsxExpression', (classNameStringNode) => {
+        let classNodeExpStr = print(classNameStringNode).slice(1, -1);
+        let res;
+
+        if (styleNameString) {
+          res = '`${' + (classNodeExpStr) + ' || ""} ' + '${('+ styleNameString + ' || "")}`';
+        } else if (styleNameExp) {
+          res = '`${' + (classNodeExpStr) + ' || ""} ' + "${("+ styleNameExp + " || '').trim().split(' ').map(s => JSON.parse('" + JSON.stringify(modulesMap) + "')[s]).join(' ')}`";
+        }
+
+        const express = match(ast(`<a t={${res}} />`), 'JsxExpression');
+        classNameStringNode.expression = express[0].expression;
+
         return classNameStringNode;
       })
       return undefined;
     } else {
-      const classNameExp = match(node.parent, 'JsxAttribute[name.name=className] JsxExpression');
-      if (classNameExp.length) {
-        node.parent = map(node.parent, 'JsxAttribute[name.name=className] JsxExpression', (classNameStringNode) => {
-          let classNodeExpStr = print(classNameStringNode).slice(1, -1);
-          let res;
-
-          if (styleNameString) {
-            res = '`${' + classNodeExpStr + '} ' + '${'+ styleNameString + '}`';
-          }
-          if (styleNameExp) {
-            res = '`${' + classNodeExpStr + '} ' + "${("+ styleNameExp + " || '').trim().split(' ').map(s => JSON.parse('" + JSON.stringify(modulesMap) + "')[s]).join(' ')}`";
-          }
-
-          const express = match(ast(`<a t={${res}} />`), 'JsxExpression');
-          classNameStringNode.expression = express[0].expression;
-
+      const classNameString = match(node.parent, 'JsxAttribute[name.name=className] StringLiteral');
+      if (classNameString.length && (styleNameExp || styleNameString)) {
+        node.parent = map(node.parent, 'JsxAttribute[name.name=className] StringLiteral', (classNameStringNode) => {
+          classNameStringNode.text = `${classNameStringNode.text || ''} ${styleNameString ? styleNameString.slice(1, -1) : styleNameExp || ''}`
           return classNameStringNode;
         })
         return undefined;
@@ -129,7 +130,10 @@ const changeStyleNameToClassName = (tsTree, modulesMap) => {
 
     node.name.escapedText = 'className';
     map(node, 'JsxExpression', (classNameNode) => {
-      const express = match(ast(`<a t={${"`${("+ styleNameExp + " || '').trim().split(' ').map(s => JSON.parse('" + JSON.stringify(modulesMap) + "')[s]).join(' ')}`"}} />`), 'JsxExpression');
+      const express = match(
+        ast(`<a t={${"`${(" + (styleNameExp) + " || '').trim().split(' ').map(s => JSON.parse('" + JSON.stringify(modulesMap) + "')[s]).join(' ')}`"}} />`), 
+        'JsxExpression'
+      );
       classNameNode.expression = express[0].expression;
 
       return classNameNode;
