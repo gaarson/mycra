@@ -46,11 +46,14 @@ const startWatching = (directoryPath, addCb, rmCb) => {
   var watcher = chokidar.watch(directoryPath, { ignored: /^\./, persistent: true });
 
   watcher
-    .on('add', (path) => {
-      addCb(path.replace(directoryPath, ''))
+    .on('add', (dirPath) => {
+      addCb(dirPath.replace(directoryPath, ''))
     })
-    .on('unlink', (path) => {
-      rmCb(path.replace(directoryPath, ''));
+    .on('unlink', (dirPath) => {
+      rmCb(dirPath.replace(directoryPath, ''));
+    })
+    .on('change', (dirPath) => {
+      console.clear();
     })
     .on('error', (error) => {
       console.error('Error happened', error);
@@ -81,6 +84,11 @@ const sendFile = (pathname, res) => {
   });
 };
 
+const run = async () => {
+  const ctx = await esbuild.context(getConfig())
+  await ctx.watch();
+  return ctx;
+};
 
 (async () => {
   try {
@@ -103,9 +111,7 @@ const sendFile = (pathname, res) => {
     const publicFiles = await updateFileList(dir.public);
     let html = rawHTML;
 
-    let ctx = await esbuild.context(getConfig())
-
-    await ctx.watch()
+    const ctx = await run();
     
     let scripts = [];
     let styles = [];

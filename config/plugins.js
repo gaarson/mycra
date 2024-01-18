@@ -13,9 +13,13 @@ import { mySvg } from '../esbuild-my-svg-plugin/index.js';
 
 import dir from './paths.js';
 import args from '../utils/args.js';
+import progress from 'esbuild-plugin-progress';
+import time from 'esbuild-plugin-time';
 
 export const getPlugins = (scopeGenerator) => { 
   let plugins = [
+    progress(),
+    time(),
     stylePlugin({
       cssModulesMatch: /\.s?css$/,
       renderOptions: {
