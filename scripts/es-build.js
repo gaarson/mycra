@@ -14,40 +14,22 @@ import sizeLimitEsbuild from '@size-limit/esbuild';
 import sizeLimitEsbuildWhy from '@size-limit/esbuild-why';
 
 import args from '../utils/args.js';
+import { fillTemplate, getHTMLTemplate } from '../utils/html-template.js';
+
 import dir from '../config/paths.js';
 
-import { getConfig } from '../config/index.js';
+import { getConfig, entryFiles } from '../config/index.js';
 
 import { MIME_FILES_MAP } from '../constants.js';
 
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
-const getHTMLTemplate = (pathname) => {
-  return new Promise((resolve, reject) => {
-    fs.exists(pathname, function (exist) {
-      if(!exist) {
-        resolve('');
-      }
-
-      if (exist && fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
-
-      if (exist) {
-        fs.readFile(pathname, 'utf8', function(err, data){
-          if(err){
-            console.error('ERROR: ', err);
-          } else {
-            resolve(data);
-          }
-        });
-      }
-    });
-  })
-};
-
 (async () => {
   try {
-    if (fsExtra.existsSync(dir.dist) 
-      && path.dirname(dir.dist) !== path.dirname(dir.root)) {
+    if (
+      fsExtra.existsSync(dir.dist) && 
+      path.dirname(dir.dist) !== path.dirname(dir.root)
+    ) {
       fsExtra.removeSync(dir.dist);
       console.log(`Directory "${dir.dist}" removed successfully.`);
     } else {
@@ -68,14 +50,6 @@ const getHTMLTemplate = (pathname) => {
     let scripts = [];
     let styles = [];
     
-    const drawHTML = (html) => {
-      return html.replace('<!--[styles]-->', styles.reduce((stylesStr, styleSrc) => {
-        return stylesStr + `<link rel="stylesheet" type="text/css" href="${styleSrc}">\n`
-      }, '')).replace('<!--[scripts]-->', scripts.reduce((scriptStr, scriptSrc) => {
-        return scriptStr + `<script type="module" src="${scriptSrc}"></script>\n`
-      }, ''))
-    }
-
     await esbuild.build(getConfig())
 
     const publicFiles = await updateFileList(dir.public);
@@ -88,14 +62,22 @@ const getHTMLTemplate = (pathname) => {
     }
 
     files.forEach((file) => {
-      if (path.extname(file) === '.js') scripts = [...scripts, file.replace(dir.dist, '')];
+      entryFiles.forEach(entry => {
+        if (
+          path.extname(file) === '.js' && 
+          (path.basename(entry).split('.')[0] === path.basename(file).split('.')[0] ||
+          path.basename(file).split('.')[0] === 'svg-insert')
+        ) {
+          scripts = [...scripts, file.replace(dir.dist, '')];
+        }
+      })
       if (path.extname(file) === '.css') styles = [...styles, file.replace(dir.dist, '')];
     })
 
     if (rawHTML) {
       fs.writeFile(
         `${dir.dist}/${args.template}`, 
-        drawHTML(await getHTMLTemplate(htmlFilePath)), 
+        fillTemplate(await getHTMLTemplate(htmlFilePath), scripts, styles), 
         (err) => {
           if (err) {
             console.error('Error writing HTML file:', err);

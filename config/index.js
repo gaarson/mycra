@@ -95,6 +95,7 @@ let bundleSettings = {
   },
 }
 
+export const entryFiles = entry;
 export const getConfig = () => ({
     ...bundleSettings,
     entryPoints: entry,

@@ -15,10 +15,12 @@ import sizeLimitEsbuild from '@size-limit/esbuild';
 import { glob } from 'glob';
 import chokidar from 'chokidar';
 
-import args from '../utils/args.js';
 import dir from '../config/paths.js';
 
-import { getConfig } from '../config/index.js';
+import args from '../utils/args.js';
+import { fillTemplate, getHTMLTemplate } from '../utils/html-template.js';
+
+import { getConfig, entryFiles } from '../config/index.js';
 
 import { MIME_FILES_MAP, DEFAULT_PORT, DEFAULT_HOST } from '../constants.js';
 
@@ -79,33 +81,13 @@ const sendFile = (pathname, res) => {
   });
 };
 
-const getHTMLTemplate = (pathname) => {
-  return new Promise((resolve, reject) => {
-    fs.exists(pathname, function (exist) {
-      if(!exist) {
-        console.error('File doesn`t exists');
-        resolve('');
-      }
-
-      if (exist && fs.statSync(pathname).isDirectory()) pathname += '/index' + ext;
-
-      if (exist) {
-        fs.readFile(pathname, 'utf8', function(err, data){
-          if(err){
-            console.error('ERROR: ', err);
-          } else {
-            resolve(data);
-          }
-        });
-      }
-    });
-  })
-};
 
 (async () => {
   try {
-    if (fsExtra.existsSync(dir.dist) 
-      && path.dirname(dir.dist) !== path.dirname(dir.root)) {
+    if (
+      fsExtra.existsSync(dir.dist) && 
+      path.dirname(dir.dist) !== path.dirname(dir.root)
+    ) {
       fsExtra.removeSync(dir.dist);
       console.log(`Directory "${dir.dist}" removed successfully.`);
     } else {
@@ -115,6 +97,7 @@ const getHTMLTemplate = (pathname) => {
         console.error(`Directory "${dir.dist}" does not exist.`);
       }
     }
+
     const htmlFilePath = `${dir.public}/${args.template}`;
     const rawHTML = await getHTMLTemplate(htmlFilePath);
     const publicFiles = await updateFileList(dir.public);
@@ -127,26 +110,7 @@ const getHTMLTemplate = (pathname) => {
     let scripts = [];
     let styles = [];
 
-    const redrawHTML = async () => {
-      let newHTML = rawHTML.replace('<!--[styles]-->', styles.reduce((stylesStr, styleSrc) => {
-        return stylesStr + `<link rel="stylesheet" type="text/css" href="${styleSrc}">\n`
-      }, ''))
-      html = newHTML.replace('<!--[scripts]-->', scripts.reduce((scriptStr, scriptSrc) => {
-        return scriptStr + `<script type="module" src="${scriptSrc}"></script>\n`
-      }, `<script>new EventSource('/esbuild').addEventListener('change', () => location.reload())</script>\n`))
-
-      if (args.size) {
-        const distFiles = (await updateFileList(dir.dist))
-        .filter(s => {
-          console.log('AAAAAA', s, publicFiles.some(f => path.basename(f) === path.basename(s)));
-          return path.extname(s) === '.js' && !publicFiles.some(f => path.basename(f) === path.basename(s));
-        })
-        console.log('DIST', distFiles);
-        sizeLimit([filePlugin, sizeLimitEsbuild], distFiles).then(result => {
-          console.log(distFiles, result);
-        })
-      }
-
+    const writeFiles = () => {
       if (!args.devServer) {
         for (const publcFilePath of publicFiles) {
           if (path.basename(publcFilePath) !== args.template) {
@@ -154,27 +118,29 @@ const getHTMLTemplate = (pathname) => {
           }
         }
         if (html) {
-          fs.writeFile(
-            `${dir.dist}/${args.template}`, 
-            html, 
-            (err) => {
-              if (err) {
-                console.error('Error writing HTML file:', err);
-              }
-            }
-          );
+          fs.writeFileSync(`${dir.dist}/${args.template}`, html);
         }
       }
-    }
-
+    };
+    
     startWatching(dir.dist, (changedFile) => {
-      if (path.extname(changedFile) === '.js') scripts = [...scripts, changedFile];
+      entryFiles.forEach(entry => {
+        if (
+          path.extname(changedFile) === '.js' && 
+          (path.basename(entry).split('.')[0] === path.basename(changedFile).split('.')[0] ||
+          path.basename(changedFile).split('.')[0] === 'svg-insert')
+        ) {
+          scripts = [...scripts, changedFile];
+        }
+      })
       if (path.extname(changedFile) === '.css') styles = [...styles, changedFile];
-      redrawHTML();
+      html = fillTemplate(rawHTML, scripts, styles);
+      writeFiles();
     }, (removedFile) => {
       if (path.extname(removedFile) === '.js') scripts = scripts.filter(i => i !== removedFile);
       if (path.extname(removedFile) === '.css') styles = styles.filter(i => i !== removedFile);
-      redrawHTML();
+      html = fillTemplate(rawHTML, scripts, styles);
+      writeFiles();
     });
 
     if (args.devServer) {
@@ -226,7 +192,17 @@ const getHTMLTemplate = (pathname) => {
           res.end();
         }
 
-      }).listen(PORT, HOST)
+      }).listen(PORT, HOST);
+    }
+
+    if (args.size) {
+      const distFiles = (await updateFileList(dir.dist)).filter(
+        s => path.extname(s) === '.js' && !publicFiles.some(f => path.basename(f) === path.basename(s))
+      );
+
+      sizeLimit([filePlugin, sizeLimitEsbuild], distFiles).then(result => {
+        console.log(distFiles, result);
+      })
     }
   } catch (error) {
     console.error('ERRRRRRRRRRRRRRE', error);
