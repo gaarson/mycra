@@ -68,9 +68,9 @@ let entry;
 if (fsExtra.existsSync(`${dir.app}/index.js`)) {
   entry = [`${dir.app}/index.js`];
 } else if (fsExtra.existsSync(`${dir.app}/index.jsx`)) {
-  entry = [`${dir.app}/index.js`];
+  entry = [`${dir.app}/index.jsx`];
 } else if (fsExtra.existsSync(`${dir.app}/index.ts`)) {
-  entry = [`${dir.app}/index.js`];
+  entry = [`${dir.app}/index.ts`];
 } else if (fsExtra.existsSync(`${dir.app}/index.tsx`)) {
   entry = [`${dir.app}/index.tsx`];
 } else {
