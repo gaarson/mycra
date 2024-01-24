@@ -5,6 +5,8 @@ import envFilePlugin from 'esbuild-envfile-plugin';
 import stylePlugin from 'esbuild-style-plugin'
 import { environmentPlugin } from 'esbuild-plugin-environment';
 
+import babel from 'esbuild-plugin-babel';
+
 import { dtsPlugin } from "esbuild-plugin-d.ts";
 import { polyfillNode } from "esbuild-plugin-polyfill-node";
 import { styleNamePlugin } from '../esbuild-module-style-name-plugin/index.js';
@@ -16,14 +18,29 @@ import args from '../utils/args.js';
 import progress from 'esbuild-plugin-progress';
 import time from 'esbuild-plugin-time';
 
-export const getPlugins = (scopeGenerator) => { 
+let babelConfig;
+
+export const getPlugins = async (scopeGenerator) => { 
+  if (args.babel) {
+    const res = await import(path.join(dir.root, args.babel));
+    babelConfig = res.default;
+  }
+
   let plugins = [
+    ...(babelConfig ? [
+      babel({
+        filter: /\.js(x?)$/,
+        namespace: '',
+        config: babelConfig
+      })
+    ] : []),
     progress(),
     time(),
     stylePlugin({
       cssModulesMatch: /\.s?css$/,
       renderOptions: {
         sassOptions: {
+          style: 'compressed',
           importer: (url, prev) => {
             if (url.startsWith('@/')) {
               return { file: path.join(dir.app, url.replace('@', '')) };

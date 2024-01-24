@@ -146,7 +146,7 @@ const changeStyleNameToClassName = (tsTree, modulesMap) => {
 export const styleNamePlugin = (scopeGenerator) => ({
   name: 'styleNamePlugin',
   setup(build) {
-    build.onLoad({ filter: /\.[jt]sx$/ }, async (args) => {
+    build.onLoad({ filter: /\.(j|t)sx$/ }, async (args) => {
       const loader = path.extname(args.path).replace('.', '');
       let sourceCode = await fs.promises.readFile(args.path, 'utf8')
       const tree = ast(sourceCode);

@@ -50,7 +50,8 @@ const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
     let scripts = [];
     let styles = [];
     
-    await esbuild.build(getConfig())
+    const conf = await getConfig();
+    await esbuild.build(conf);
 
     const publicFiles = await updateFileList(dir.public);
     const files = await updateFileList(dir.dist);
