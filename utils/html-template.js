@@ -32,12 +32,20 @@ export const fillTemplate = (
   styles
 ) => {
   if (html) {
-    let newHTML = html.replace('<!--[styles]-->', styles.reduce((stylesStr, styleSrc) => {
-      return stylesStr + `<link rel="stylesheet" type="text/css" href="${styleSrc}">\n`
-    }, ''))
-    newHTML = newHTML.replace('<!--[scripts]-->', scripts.reduce((scriptStr, scriptSrc) => {
-      return scriptStr + `<script type="module" src="${scriptSrc}"></script>\n`
-    }, `<script>new EventSource('/esbuild').addEventListener('change', () => location.reload())</script>\n`))
+    let newHTML = html.replace(
+      '<!--[styles]-->', 
+      styles.reduce(
+        (stylesStr, styleSrc) => stylesStr + `<link rel="stylesheet" type="text/css" href="${styleSrc}">\n`, ''
+      )
+    )
+
+    newHTML = newHTML.replace(
+      '<!--[scripts]-->', 
+      scripts.reduce(
+        (scriptStr, scriptSrc) => scriptStr + `<script type="module" src="${scriptSrc}"></script>\n`, 
+        args.devServer ? `<script>new EventSource('/esbuild').addEventListener('change', () => location.reload())</script>\n` : ''
+      )
+    )
 
     return newHTML;
   }

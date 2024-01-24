@@ -86,8 +86,8 @@ const env = Object.keys(process.env)
 
 let bundleSettings = {
   bundle: true,
-  splitting: true,
-  format: 'esm',
+  splitting: args.format === 'esm' ? true : false,
+  format: args.format,
   alias: {
     'src': dir.app,
     '@': dir.app,
@@ -96,7 +96,10 @@ let bundleSettings = {
 }
 
 export const entryFiles = entry;
-export const getConfig = () => ({
+export const getConfig = async () => { 
+  const plugins = await getPlugins(buildMode.simpleClassHash);
+
+  return {
     ...bundleSettings,
     entryPoints: entry,
     outdir: dir.dist,
@@ -104,6 +107,7 @@ export const getConfig = () => ({
     define: {
       'process.env.NODE_ENV': JSON.stringify(buildMode.type),
       'glob': `{ "env": ${JSON.stringify(env)} }`,
+      'global': 'window',
     },
     assetNames: `assets/${baseFileName}`,
     chunkNames: entry.length > 1 ? `chunks/[hash].[name]` : baseFileName,
@@ -118,7 +122,7 @@ export const getConfig = () => ({
       ? Object.values(includeModules) 
       : undefined,
     packages: args.excludeModules ? 'external' : undefined,
-    plugins: getPlugins(buildMode.simpleClassHash),
+    plugins,
     jsx: 'transform',
     loader: {
       '.png': 'dataurl',
@@ -129,4 +133,5 @@ export const getConfig = () => ({
       '.woff': 'dataurl',
       '.woff2': 'dataurl',
     },
-})
+  } 
+}

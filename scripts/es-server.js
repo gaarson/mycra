@@ -52,9 +52,6 @@ const startWatching = (directoryPath, addCb, rmCb) => {
     .on('unlink', (dirPath) => {
       rmCb(dirPath.replace(directoryPath, ''));
     })
-    .on('change', (dirPath) => {
-      console.clear();
-    })
     .on('error', (error) => {
       console.error('Error happened', error);
     })
@@ -85,9 +82,14 @@ const sendFile = (pathname, res) => {
 };
 
 const run = async () => {
-  const ctx = await esbuild.context(getConfig())
-  await ctx.watch();
-  return ctx;
+  try {
+    const config = await getConfig();
+    const ctx = await esbuild.context(config);
+    await ctx.watch();
+    return ctx;
+  } catch(error) {
+    console.error('RUN ERROR:', error)
+  }
 };
 
 (async () => {
@@ -139,7 +141,9 @@ const run = async () => {
           scripts = [...scripts, changedFile];
         }
       })
-      if (path.extname(changedFile) === '.css') styles = [...styles, changedFile];
+      if (path.extname(changedFile) === '.css') {
+        styles = [...styles, changedFile];
+      }
       html = fillTemplate(rawHTML, scripts, styles);
       writeFiles();
     }, (removedFile) => {
@@ -211,6 +215,6 @@ const run = async () => {
       })
     }
   } catch (error) {
-    console.error('ERRRRRRRRRRRRRRE', error);
+    console.error('ERROR: ', error);
   }
 })();
