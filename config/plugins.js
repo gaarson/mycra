@@ -27,6 +27,7 @@ export const getPlugins = async (scopeGenerator) => {
   }
 
   let plugins = [
+    styleNamePlugin(scopeGenerator || buildMode.simpleClassHash),
     ...(babelConfig ? [
       babel({
         filter: /\.js(x?)$/,
@@ -52,7 +53,6 @@ export const getPlugins = async (scopeGenerator) => {
         generateScopedName: scopeGenerator || buildMode.simpleClassHash,
       }
     }),
-    styleNamePlugin(scopeGenerator || buildMode.simpleClassHash),
     mySvg(dir.app, dir.dist, args.splitSvg),
     polyfillNode(),
     envFilePlugin,
