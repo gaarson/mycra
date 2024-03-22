@@ -45,7 +45,7 @@ export const getPlugins = async (scopeGenerator) => {
         config: babelConfig
       })
     ] : []),
-    // progress(),
+    progress(),
     time(),
     stylePerPlugin({
       cssModulesMatch: /\.s?css$/,
