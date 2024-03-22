@@ -60,7 +60,7 @@ export const renderStyle = async (filePath, options) => {
   throw new Error(`Can't render this style '${ext}'.`)
 }
 
-const onStyleResolve = async (build, args) => {
+const onStyleResolve = (isRaw) => async (build, args) => {
   const { namespace } = args
 
   if (args.pluginData === SKIP_RESOLVE || namespace === LOAD_STYLE_NAMESPACE) return
@@ -78,7 +78,8 @@ const onStyleResolve = async (build, args) => {
   return {
     path: fullPath,
     namespace: LOAD_STYLE_NAMESPACE,
-    watchFiles: [fullPath]
+    watchFiles: [fullPath],
+    pluginData: { isRaw }
   }
 }
 
@@ -119,7 +120,7 @@ const onStyleLoad = (options, build) => async (args) => {
   let injectMapping = false
   let contents = ''
 
-  if (isCSSModule) {
+  if (isCSSModule && !args.pluginData?.isRaw) {
     plugins = [handleCSSModules(mapping, cssModulesOptions), ...plugins]
     injectMapping = true
   }
@@ -156,8 +157,8 @@ export const stylePerPlugin = (options) => ({
     }
 
     // Resolve all css or other style here
-    build.onResolve({ filter: /.\.(css|sass|scss|less|styl)\?raw/ }, onStyleResolve.bind(null, build));
-    build.onResolve({ filter: styleFilter }, onStyleResolve.bind(null, build))
+    build.onResolve({ filter: /.\.(css|sass|scss|less|styl)\?raw/ }, onStyleResolve(true).bind(null, build));
+    build.onResolve({ filter: styleFilter }, onStyleResolve().bind(null, build))
     // build.onResolve({ filter: /^ni:/, namespace: LOAD_STYLE_NAMESPACE }, onTempStyleResolve.bind(null, build))
 
     // // New temp files from rendered css must be evaluated
