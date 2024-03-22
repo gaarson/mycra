@@ -104,6 +104,7 @@ export const getConfig = async () => {
     entryPoints: entry,
     outdir: dir.dist,
     platform: args.platform,
+    drop: buildMode.type === 'production' ? ['console'] : [],
     define: {
       'process.env.NODE_ENV': JSON.stringify(buildMode.type),
       'glob': `{ "env": ${JSON.stringify(env)} }`,
