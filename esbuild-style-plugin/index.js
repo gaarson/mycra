@@ -1,14 +1,74 @@
-import { promises as fs } from 'fs';
+import fs, { promises } from 'fs';
 import path from 'path';
 import postcss from 'postcss';
 import { createHash } from 'crypto';
 import cssModules from 'postcss-modules';
-import url from 'url';
+import { fileURLToPath, pathToFileURL } from 'url'
 import { minify } from 'minify';
-const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
+import * as csstree from 'css-tree';
+import dir from '../config/paths.js';
+
 const styleFilter = /.\.(css|sass|scss|less|styl)$/
 const LOAD_STYLE_NAMESPACE = 'stylePlugin'
 const SKIP_RESOLVE = 'esbuild-style-plugin-skipResolve'
+
+const resolveModule = (id, basedir) => {
+  const opts = {
+    paths: ['.']
+  }
+  try {
+    opts.paths[0] = basedir
+    let resolved = require.resolve(id, opts)
+    // pretty ugly patch to avoid resolving erroneously to .js files ///////////////////////////////////////////////
+    if (resolved.endsWith('.js')) {
+      resolved = resolved.slice(0, -3) + '.scss'
+      if (!existsSync(resolved)) {
+        resolved = resolved.slice(0, -5) + '.sass'
+        if (!existsSync(resolved)) {
+          resolved = resolved.slice(0, -5) + '.css'
+        }
+      }
+    }
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    return resolved
+  } catch (ignored) {
+    return id
+  }
+};
+
+function resolveImport(pathname, ext) {
+  if (ext) {
+    let filename = pathname + ext
+    if (fs.existsSync(filename)) {
+      return filename
+    }
+    const index = filename.lastIndexOf(path.sep)
+    filename = index >= 0 ? filename.slice(0, index) + path.sep + '_' + filename.slice(index + 1) : '_' + filename
+    if (fs.existsSync(filename)) {
+      return filename
+    }
+    return null
+  } else {
+    if (!fs.existsSync(path.dirname(pathname))) {
+      return null
+    }
+    return resolveImport(pathname, '.scss')
+      || resolveImport(pathname, '.css')
+      || resolveImport(pathname, '.sass')
+      || resolveImport(pathname + path.sep + 'index')
+  }
+}
+
+function resolveRelativeImport(loadPath, filename) {
+  const absolute = path.resolve(loadPath, filename)
+  const pathParts = path.parse(absolute)
+  if (/\.(s[ac]ss|css)$/.test(pathParts.ext)) {
+    return resolveImport(pathParts.dir + path.sep + pathParts.name, pathParts.ext)
+  } else {
+    return resolveImport(absolute)
+  }
+}
+const sepTilde = `${path.sep}~`
 
 export const getModule = async (moduleName, checkFunc) => {
   try {
@@ -36,25 +96,121 @@ const handleCSSModules = (mapping, cssModulesOptions) => {
     }
   })
 }
+function fileSyntax(filename) {
+  if (filename.endsWith('.scss')) return 'scss';
+  else if (filename.endsWith('.css')) return 'css'; 
+  else return 'indented';
+}
+function getFileFormat(filePath) {
+  const ext = path.extname(filePath).slice(1);
+  if (ext.toLowerCase().startsWith('jpg') 
+    || ext.toLowerCase().startsWith('jpeg') 
+    || ext.toLowerCase().startsWith('png')) return 'image';
+  if (ext.toLowerCase().startsWith('ttg') 
+    || ext.toLowerCase().startsWith('otf') 
+    || ext.toLowerCase().startsWith('woff2') 
+    || ext.toLowerCase().startsWith('woff')) return 'font';
+  if (ext.toLowerCase().startsWith('gif')) return 'image/gif';
+  if (ext.toLowerCase().startsWith('eot')) return 'application/vnd.ms-fontobject';
+  if (ext.toLowerCase().startsWith('svg')) return 'svg+xml';
+
+  return null; // Unknown format
+}
+
+function extractAndChangeUrls(css, filePath) {
+  const ast = csstree.parse(css);
+  csstree.walk(ast, (node) => {
+    if (node.type === 'Url') {
+      const file = node.value;
+      if (file.startsWith('/') || file.startsWith('../') || file.startsWith('./')) {
+        let fileName = path.basename(file);
+        const pathname = path.dirname(file)
+        
+        if (fileName.indexOf('?') !== -1) fileName = fileName.split('?')[0];
+        if (fileName.indexOf('#') !== -1) fileName = fileName.split('#')[0];
+        const fullPath = path.join(filePath, pathname, fileName)
+
+        const format = getFileFormat(fullPath);
+
+        if (format) {
+          const fileData = fs.readFileSync(fullPath);
+          node.value = `data:${format};base64,${fileData.toString('base64')}`;
+        }
+      }
+    }
+  });
+  return csstree.generate(ast);
+}
+
 export const renderStyle = async (filePath, options) => {
   const { ext } = path.parse(filePath)
 
+  const basedir = path.dirname(filePath)
   if (ext === '.css') {
     if (options.isMinify) {
       try {
-        const res = await minify(filePath, {})
+        const css = await minify(filePath, {})
+        const parsedCss = extractAndChangeUrls(res, basedir);
         return res;
       } catch (error) {
-        return (await fs.readFile(filePath)).toString();
+        return (await promises.readFile(filePath)).toString();
       }
     }
-    return (await fs.readFile(filePath)).toString()
+    const css = (await promises.readFile(filePath)).toString();
+    const parsedCss = extractAndChangeUrls(css, basedir);
+    return parsedCss;
   }
 
   if (ext === '.sass' || ext === '.scss') {
     const sassOptions = options.sassOptions || {}
-    const sass = await getModule('sass', 'compile')
-    return sass.compile(filePath, { ...sassOptions, style: options.isMinify ? 'compressed' : 'expanded' }).css.toString()
+    let source = await promises.readFile(filePath, 'utf-8')
+
+    const sass = await getModule('sass', 'compile');
+    const compiled = sass.compile(filePath, { 
+      ...sassOptions,
+      importers: [{
+        canonicalize(url, ...rest) {
+          let filename 
+          if (url.startsWith('@'))  {
+            filename = path.join(dir.app, url.replace('@', ''))
+            const { ext } = path.parse(filename)
+            if (!ext) return new URL(pathToFileURL(filename + '.sass'));
+            return new URL(pathToFileURL(filename));
+          }
+          if (url.startsWith('file://')) {
+            filename = fileURLToPath(url)
+            let joint = filename.lastIndexOf(sepTilde)
+            if (joint >= 0) {
+              filename = resolveModule(filename.slice(joint + 2), filename.slice(0, joint))
+            }
+          } else {
+            filename = decodeURI(url)
+          }
+          let resolved = resolveRelativeImport(basedir, filename)
+          if (resolved) {
+            return pathToFileURL(resolved)
+          }
+          return null
+        },
+        load(canonicalUrl) {
+          const pathname = fileURLToPath(canonicalUrl)
+          let contents = fs.readFileSync(pathname, 'utf8')
+          return {
+            contents,
+            syntax: fileSyntax(pathname),
+            // sourceMapUrl: buildMode.isProduct() ? canonicalUrl : undefined
+          }
+        }
+      }],
+      syntax: fileSyntax(filePath),
+      style: options.isMinify ? 'compressed' : 'expanded' 
+    }
+  );
+
+    const parsedCss = extractAndChangeUrls(compiled.css.toString(), basedir);
+
+    // console.log('PARSED CSS', parsedCss);
+    return parsedCss; 
   }
 
   throw new Error(`Can't render this style '${ext}'.`)
@@ -105,10 +261,9 @@ export const getPostCSSWatchFiles = (result) => {
   }
   return watchFiles
 }
+
 const onStyleLoad = (options, build) => async (args) => {
   const extract = options.extract === undefined ? true : options.extract
-  const cssModulesMatch = options.cssModulesMatch || /\.module\./
-  const isCSSModule = args.path.match(cssModulesMatch)
   const cssModulesOptions = options.cssModulesOptions || {}
   const renderOptions = options.renderOptions
 
@@ -119,8 +274,9 @@ const onStyleLoad = (options, build) => async (args) => {
   let { plugins = [], ...processOptions } = options.postcss || {}
   let injectMapping = false
   let contents = ''
+  const { ext } = path.parse(args.path)
 
-  if (isCSSModule && !args.pluginData?.isRaw) {
+  if (!args.pluginData?.isRaw && ext !== '.sass') {
     plugins = [handleCSSModules(mapping, cssModulesOptions), ...plugins]
     injectMapping = true
   }
@@ -151,20 +307,9 @@ const onStyleLoad = (options, build) => async (args) => {
 export const stylePerPlugin = (options) => ({
   name: 'esbuild-per-style-plugin',
   setup: async (build) => {
-    if (options.postcssConfigFile) {
-      console.log(`Using postcss config file.`)
-      options.postcss = await importPostcssConfigFile(options.postcssConfigFile)
-    }
-
-    // Resolve all css or other style here
     build.onResolve({ filter: /.\.(css|sass|scss|less|styl)\?raw/ }, onStyleResolve(true).bind(null, build));
     build.onResolve({ filter: styleFilter }, onStyleResolve().bind(null, build))
-    // build.onResolve({ filter: /^ni:/, namespace: LOAD_STYLE_NAMESPACE }, onTempStyleResolve.bind(null, build))
 
-    // // New temp files from rendered css must be evaluated
-    // build.onLoad({ filter: /.*/, namespace: LOAD_TEMP_NAMESPACE }, onTempLoad)
-
-    // // Render css with CSS Extensions / Preprocessors and PostCSS
     build.onLoad({ filter: /.*/, namespace: LOAD_STYLE_NAMESPACE }, onStyleLoad(options, build))
   }
 })
