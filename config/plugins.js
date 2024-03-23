@@ -1,12 +1,11 @@
 import fs from 'fs';
-import { pathToFileURL } from 'url';
 import path from 'path';
+import { fileURLToPath, pathToFileURL } from 'url'
 import envFilePlugin from 'esbuild-envfile-plugin';
 import stylePlugin from 'esbuild-style-plugin'
 import { environmentPlugin } from 'esbuild-plugin-environment';
 
 import babel from 'esbuild-plugin-babel';
-
 import { dtsPlugin } from "esbuild-plugin-d.ts";
 import { polyfillNode } from "esbuild-plugin-polyfill-node";
 import { styleNamePlugin } from '../esbuild-module-style-name-plugin/index.js';
@@ -20,15 +19,6 @@ import progress from 'esbuild-plugin-progress';
 import time from 'esbuild-plugin-time';
 
 let babelConfig;
-
-function buildPath(path, params) {
-    const {id, code, ...query} = params;
-    return path.replace(/\[id]/, id)
-               .replace(/\[code]/, code) +
-               "?" +
-               Object.entries(query).map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
-               .join("&");
-}
 
 export const getPlugins = async (scopeGenerator) => { 
   if (args.babel) {
@@ -45,21 +35,20 @@ export const getPlugins = async (scopeGenerator) => {
         config: babelConfig
       })
     ] : []),
-    progress(),
+    // progress(),
     time(),
     stylePerPlugin({
-      cssModulesMatch: /\.s?css$/,
       renderOptions: {
         sassOptions: {
-          importers: [{
-            findFileUrl(url, ...rest) {
-              if (url.startsWith('@'))  {
-                const resultUrl = new URL(pathToFileURL(path.join(dir.app, url.replace('@', ''))));
-                return resultUrl;
-              }
-              return null
-            }
-          }],
+          // importers: [{
+          //   findFileUrl(url, ...rest) {
+          //     if (url.startsWith('@'))  {
+          //       const resultUrl = new URL(pathToFileURL(path.join(dir.app, url.replace('@', ''))));
+          //       return resultUrl;
+          //     }
+          //     return url;
+          //   }
+          // }],
         }
       },
       cssModulesOptions: {
