@@ -8,14 +8,12 @@ import { minify } from 'minify';
 import * as csstree from 'css-tree';
 import dir from '../config/paths.js';
 
-const styleFilter = /.\.(css|sass|scss|less|styl)$/
-const LOAD_STYLE_NAMESPACE = 'stylePlugin'
-const SKIP_RESOLVE = 'esbuild-style-plugin-skipResolve'
+const fileFilter = /.\.(css|sass|scss|less|styl)$/
+const LOAD_STYLE_NAMESPACE = 'LOAD_STYLE_NAMESPACE';
+const SKIP_RESOLVE = 'SKIP_RESOLVE';
 
 const resolveModule = (id, basedir) => {
-  const opts = {
-    paths: ['.']
-  }
+  const opts = { paths: ['.'] };
   try {
     opts.paths[0] = basedir
     let resolved = require.resolve(id, opts)
@@ -229,7 +227,7 @@ const onStyleResolve = (isRaw) => async (build, args) => {
   const fullPath = result.path
 
   // Check for pre compiled JS files like file.css.js
-  if (!styleFilter.test(fullPath)) return
+  if (!fileFilter.test(fullPath)) return
 
   return {
     path: fullPath,
@@ -308,7 +306,7 @@ export const stylePerPlugin = (options) => ({
   name: 'esbuild-per-style-plugin',
   setup: async (build) => {
     build.onResolve({ filter: /.\.(css|sass|scss|less|styl)\?raw/ }, onStyleResolve(true).bind(null, build));
-    build.onResolve({ filter: styleFilter }, onStyleResolve().bind(null, build))
+    build.onResolve({ filter: fileFilter }, onStyleResolve().bind(null, build))
 
     build.onLoad({ filter: /.*/, namespace: LOAD_STYLE_NAMESPACE }, onStyleLoad(options, build))
   }
