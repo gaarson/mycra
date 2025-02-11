@@ -17,7 +17,7 @@
     "crypto": "^1.0.1",
     "css-tree": "^2.3.1",
     "dotenv": "^16.3.1",
-    "esbuild": "^0.20.2",
+    "esbuild": "^0.25.0",
     "esbuild-envfile-plugin": "^1.0.5",
     "esbuild-plugin-babel": "^0.2.3",
     "esbuild-plugin-d.ts": "^1.2.2",
