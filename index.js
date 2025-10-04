@@ -1,5 +1,3 @@
-import paths from './config/paths.js';
-import args from './utils/args.js';
 import buildMode from './config/buildMode.js';
 
 export default () => {

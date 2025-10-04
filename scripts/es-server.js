@@ -163,11 +163,10 @@ const run = async () => {
           method: req.method,
           headers: req.headers,
         }
-        const parsedUrl = url.parse(req.url);
+
+        const parsedUrl = new URL(req.url, 'http://localhost');
         const publicPathName = `${dir.public}${parsedUrl.pathname}`;
         const distPathName = `${dir.dist}${parsedUrl.pathname}`
-
-        const newHTMLFilePath = `${dir.dist}/${args.template}`
 
         if (parsedUrl.pathname === '/') {
           res.writeHead(200, {'Content-Type': 'text/html'});
