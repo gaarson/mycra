@@ -41,9 +41,9 @@ describe('create plugin instance', () => {
           <body><div class="test"></div></body>
         </html>
     `, {
-    runScripts: 'dangerously',  // Включаем выполнение скриптов (осторожно с untrusted кодом!)
-    resources: 'usable',  // Для загрузки внешних ресурсов, если нужно
-    url: 'http://localhost/',  // Симулируем URL для relative импортов
+    runScripts: 'dangerously',
+    resources: 'usable',
+    url: 'http://localhost/',
   });
 
   const context = dom.getInternalVMContext();
