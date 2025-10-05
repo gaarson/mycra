@@ -2,6 +2,7 @@ const args = process.argv.slice(2);
 
 const argsDefinitions = [
   { name: 'path', alias: 'p', type: String, default: 'app' },
+  { name: 'ignorePaths', alias: 'ip', type: String, default: null },
   { name: 'outputDir', alias: 'd', type: String, default: 'dist' },
   { name: 'size', alias: 's', type: Boolean },
   { name: 'coverage', alias: 'c', type: Boolean },
@@ -17,7 +18,7 @@ const argsDefinitions = [
   { name: 'excludeModules', alias: 'em', type: Boolean },
   { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false },
   { name: 'babel', alias: 'b', type: String, default: '' },
-  { name: 'template', type: String, alias: 't', default: 'index.html' }
+  { name: 'template', type: String, alias: 't', default: 'index.html' },
 ];
 
 const result = {};

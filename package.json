@@ -8,6 +8,9 @@
   "type": "module",
   "module": true,
   "license": "ISC",
+  "scripts": {
+    "test": "./bin/sys.js test -ip test-environment"
+  },
   "dependencies": {
     "@phenomnomnominal/tsquery": "^6.1.3",
     "@size-limit/esbuild": "^11.2.0",

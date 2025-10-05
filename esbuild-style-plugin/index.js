@@ -1,12 +1,12 @@
 import fs, { promises } from 'fs';
 import path from 'path';
 import postcss from 'postcss';
-import { createHash } from 'crypto';
 import cssModules from 'postcss-modules';
 import { fileURLToPath, pathToFileURL } from 'url'
 import { minify } from 'minify';
 import * as csstree from 'css-tree';
 import dir from '../config/paths.js';
+import { hashCode } from '../config/buildMode.js';
 
 const fileFilter = /.\.(css|sass|scss|less|styl)$/
 const LOAD_STYLE_NAMESPACE = 'LOAD_STYLE_NAMESPACE';
@@ -17,7 +17,7 @@ const resolveModule = (id, basedir) => {
   try {
     opts.paths[0] = basedir
     let resolved = require.resolve(id, opts)
-    // pretty ugly patch to avoid resolving erroneously to .js files ///////////////////////////////////////////////
+    // pretty ugly patch to avoid resolving erroneously to .js files /////////
     if (resolved.endsWith('.js')) {
       resolved = resolved.slice(0, -3) + '.scss'
       if (!existsSync(resolved)) {
@@ -27,7 +27,7 @@ const resolveModule = (id, basedir) => {
         }
       }
     }
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////
     return resolved
   } catch (ignored) {
     return id
@@ -147,8 +147,8 @@ export const renderStyle = async (filePath, options) => {
   if (ext === '.css') {
     if (options.isMinify) {
       try {
-        const css = await minify(filePath, {})
-        const parsedCss = extractAndChangeUrls(res, basedir);
+        // const css = await minify(filePath, {})
+        // const parsedCss = extractAndChangeUrls(res, basedir);
         return res;
       } catch (error) {
         return (await promises.readFile(filePath)).toString();
@@ -161,13 +161,12 @@ export const renderStyle = async (filePath, options) => {
 
   if (ext === '.sass' || ext === '.scss') {
     const sassOptions = options.sassOptions || {}
-    let source = await promises.readFile(filePath, 'utf-8')
 
     const sass = await getModule('sass', 'compile');
     const compiled = sass.compile(filePath, { 
       ...sassOptions,
       importers: [{
-        canonicalize(url, ...rest) {
+        canonicalize(url) {
           let filename 
           if (url.startsWith('@'))  {
             filename = path.join(dir.app, url.replace('@', ''))
@@ -196,7 +195,6 @@ export const renderStyle = async (filePath, options) => {
           return {
             contents,
             syntax: fileSyntax(pathname),
-            // sourceMapUrl: buildMode.isProduct() ? canonicalUrl : undefined
           }
         }
       }],
@@ -207,7 +205,6 @@ export const renderStyle = async (filePath, options) => {
 
     const parsedCss = extractAndChangeUrls(compiled.css.toString(), basedir);
 
-    // console.log('PARSED CSS', parsedCss);
     return parsedCss; 
   }
 
@@ -226,7 +223,6 @@ const onStyleResolve = (isRaw) => async (build, args) => {
 
   const fullPath = result.path
 
-  // Check for pre compiled JS files like file.css.js
   if (!fileFilter.test(fullPath)) return
 
   return {
@@ -247,8 +243,6 @@ export const getPostCSSWatchFiles = (result) => {
     } else if (type === 'dir-dependency') {
       if (!message.dir) continue
 
-      // Can be translated to const globString = message.glob ?? `**/*` but we will use code bellow to support node12
-      // https://node.green/#ES2020-features--nullish-coalescing-operator-----
       let globString = `**/*`
       if (message.glob && message.glob !== '') globString = message.glob
 
@@ -268,13 +262,13 @@ const onStyleLoad = (options, build) => async (args) => {
   let css = await renderStyle(args.path, { ...renderOptions, isMinify: build.initialOptions.minify })
 
   let watchFiles = []
-  let mapping = { data: {} }
-  let { plugins = [], ...processOptions } = options.postcss || {}
+  let mapping = {data: {}}
+  let {plugins = [], ...processOptions} = options.postcss || {}
   let injectMapping = false
   let contents = ''
-  const { ext } = path.parse(args.path)
+  const {ext} = path.parse(args.path)
 
-  if (!args.pluginData?.isRaw && ext !== '.sass') {
+  if (!args.pluginData?.isRaw) {
     plugins = [handleCSSModules(mapping, cssModulesOptions), ...plugins]
     injectMapping = true
   }
@@ -289,9 +283,11 @@ const onStyleLoad = (options, build) => async (args) => {
   }
 
   if (extract) {
+    const hash = `${ext.slice(1)}${hashCode(args.path)}`;
     contents += `
-      (document.head || document.getElementsByTagName('head')[0]).insertAdjacentHTML("beforeend", decodeURI("${'<style>' + encodeURI(`/*${args.path}*/\n${css}`) + '</style>'}"))
-`
+      if(!document.getElementById("${hash}"))(document.head  || document.getElementsByTagName('head')[0]).insertAdjacentHTML("beforeend", decodeURI('${
+      `<style id="${hash}">` + encodeURI(`/*${args.path}*/\n${css}`) + '</style>'
+    }'))`
   } 
 
   return {

@@ -3,7 +3,8 @@ import url from 'url';
 import path from 'path';
 import args from '../utils/args.js';
 
-import jest from 'jest';
+import { run } from 'jest';
+
 const argv = process.argv.slice(2);
 const __dirname = url.fileURLToPath(new URL('.', import.meta.url));
 
@@ -20,4 +21,4 @@ if (args.coverage) {
   preparedArgv.push('--coverage');
 }
 
-jest.run(preparedArgv);
+run(preparedArgv);

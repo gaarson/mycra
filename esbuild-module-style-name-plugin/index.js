@@ -1,10 +1,7 @@
 import fs from 'fs';
-import fsExtra from 'fs-extra';
 import path from 'path';
 import postcss from 'postcss';
 import cssModules from 'postcss-modules';
-import * as esbuild from 'esbuild';
-import ts from 'typescript';
 import { ast, query, map, replace, print, match } from '@phenomnomnominal/tsquery';
 import chokidar from 'chokidar';
 
