@@ -1,7 +1,7 @@
 import { jest } from '@jest/globals';
 import { styleNamePlugin } from ".";
 
-describe('create plugin instance', () => {
+describe('create styleName plugin instance', () => {
   const watcherSpy = jest.fn();
 
   beforeEach(() => {

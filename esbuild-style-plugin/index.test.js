@@ -6,8 +6,7 @@ import path from 'path';
 import { stylePerPlugin } from ".";
 import { hashCode } from '../config/buildMode';
 
-
-describe('create plugin instance', () => {
+describe('create styles plugin instance', () => {
   const watcherSpy = jest.fn();
   const options = {
     extract: undefined,
@@ -28,7 +27,6 @@ describe('create plugin instance', () => {
     watcherSpy.mockClear();
     plugin = stylePerPlugin(options)
   })
-
 
   const onResolve = async ({ filter }, handler) => {
     await handler({}, {namespace: 'test'})
@@ -59,15 +57,15 @@ describe('create plugin instance', () => {
     await module.link(() => {});
     await module.evaluate();
 
-    const result = module.namespace;
-
-    return result.default;
+    return module.namespace.default;
   }
 
   test('css imports works', (done) => { 
     const onLoad = async ({ filter }, handler) => {
       handler({ path: testCssPath }).then(async (fileData) => {
-        expect(await getModuleContent(fileData.contents)).toMatchObject({test: 'TEST_HASH'})
+        expect(
+          JSON.stringify(await getModuleContent(fileData.contents))
+        ).toMatch(JSON.stringify({"test": "TEST_HASH"}))
 
         done()
       });
@@ -85,7 +83,9 @@ describe('create plugin instance', () => {
   test('scss imports works', (done) => { 
     const onLoad = async ({ filter }, handler) => {
       handler({ path: testScssPath }).then(async (fileData) => {
-        expect(await getModuleContent(fileData.contents)).toMatchObject({test: 'TEST_HASH'})
+        expect(
+          JSON.stringify(await getModuleContent(fileData.contents))
+        ).toMatch(JSON.stringify({"test": "TEST_HASH"}))
         done()
       });
     }
@@ -102,12 +102,15 @@ describe('create plugin instance', () => {
   test('sass imports works', (done) => { 
     const onLoad = async ({ filter }, handler) => {
       handler({ path: testSassPath }).then(async (fileData) => {
-        expect(await getModuleContent(fileData.contents)).toMatchObject({
+        expect(
+          JSON.stringify(await getModuleContent(fileData.contents))
+        ).toMatch(JSON.stringify({
           test: 'TEST_HASH',
           'test-test': 'TEST_HASH',
-          'test_test': 'TEST_HASH',
-          'testTest': 'TEST_HASH'
-        })
+          test_test: 'TEST_HASH',
+          testTest: 'TEST_HASH',
+          icon: 'TEST_HASH'
+        }))
 
         done()
       });

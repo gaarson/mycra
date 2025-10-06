@@ -51,8 +51,6 @@ const createOnLoad = (distDir, workDir) => async (args) => {
   svgSymbolsGenerator(distDir);
 
   const contents = `
-    import React from 'react';
-    
     const Icon = ({ className, glyph, ...restProps }) => {
       return React.createElement(
         'svg',
