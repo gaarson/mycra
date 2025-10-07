@@ -24,6 +24,7 @@ export const getPlugins = async (scopeGenerator) => {
     
   let plugins = [
     styleMagicPlugin({
+      cssOptions: {modulesExt: ['.scss', '.css']},
       cssModulesOptions: {
         generateScopedName: scopeGenerator || buildMode.simpleClassHash,
       }

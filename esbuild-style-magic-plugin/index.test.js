@@ -10,75 +10,6 @@ import { changeStyleNameToClassName, styleMagicPlugin } from './';
 
 const normalize = (code) => code.replace(/\s/g, '');
 
-describe('changeStyleNameToClassName', () => {
-  const modulesMap = {
-    container: 'container_h_1',
-    title: 'title_h_2',
-    'is-active': 'is-active_h_3',
-  };
-
-  it('simple switch styleName to className', () => {
-    const source = `const C = () => <div styleName="container" />;`;
-    const expected = `const C = () => <div className="container_h_1"/>;`;
-    
-    const tsTree = ast(source);
-    const { transformedTree } = changeStyleNameToClassName(tsTree, modulesMap);
-    
-    expect(normalize(print(transformedTree))).toBe(normalize(expected));
-  });
-
-  it('должен объединять styleName с существующим статическим className', () => {
-    const source = `const C = () => <div className="existing" styleName="container title" />;`;
-    const expected = `const C = () => <div className={["existing", "container_h_1 title_h_2"].filter(Boolean).join(" ")}/>;`;
-
-    const tsTree = ast(source);
-    const { transformedTree } = changeStyleNameToClassName(tsTree, modulesMap);
-
-    expect(normalize(print(transformedTree))).toBe(normalize(expected));
-  });
-
-  it('должен объединять styleName с существующим динамическим className', () => {
-    const source = `const C = () => <div className={getClasses()} styleName="container" />;`;
-    const expected = `const C = () => <div className={[getClasses(), "container_h_1"].filter(Boolean).join(" ")}/>;`;
-    
-    const tsTree = ast(source);
-    const { transformedTree } = changeStyleNameToClassName(tsTree, modulesMap);
-    
-    expect(normalize(print(transformedTree))).toBe(normalize(expected));
-  });
-
-  it('должен создавать хелпер для динамического styleName', () => {
-    const source = `const C = () => <div styleName={isActive ? 'is-active' : ''} />;`;
-    const expected = `const C = () => <div className={[_styleNameToClassNameHelper(STYLES, isActive ? 'is-active' : '')].filter(Boolean).join(" ")}/>;`;
-    
-    const tsTree = ast(source);
-    const { transformedTree, needsHelper } = changeStyleNameToClassName(tsTree, modulesMap);
-    
-    expect(needsHelper).toBe(true);
-    expect(normalize(print(transformedTree))).toBe(normalize(expected));
-  });
-
-  it('должен объединять динамический styleName и динамический className', () => {
-    const source = `const C = () => <div className={getClasses()} styleName={isActive ? 'is-active' : ''} />;`;
-    const expected = `const C = () => <div className={[getClasses(), _styleNameToClassNameHelper(STYLES, isActive ? 'is-active' : '')].filter(Boolean).join(" ")}/>;`;
-
-    const tsTree = ast(source);
-    const { transformedTree, needsHelper } = changeStyleNameToClassName(tsTree, modulesMap);
-
-    expect(needsHelper).toBe(true);
-    expect(normalize(print(transformedTree))).toBe(normalize(expected));
-  });
-
-  it('должен преобразовывать импорт стилей в side-effect import', () => {
-    const source = `import styles from './style.css';\nimport React from 'react';\nconst C = () => <div styleName="container" />;`;
-    
-    const finalTree = ast(source);
-    const result = changeStyleNameToClassName(finalTree, modulesMap);
-
-    expect(print(result.transformedTree).trim()).toContain(`import './style.css';`);
-  });
-});
-
 async function buildWithPluginOnDisk(files) {
   const tempDir = path.join(os.tmpdir(), `style-magic-test-${Date.now()}`);
   await fs.mkdir(tempDir, { recursive: true });
@@ -97,7 +28,11 @@ async function buildWithPluginOnDisk(files) {
       write: false,
       external: ['react'],
       plugins: [
-        styleMagicPlugin(),
+        styleMagicPlugin({
+          cssOptions: {
+            modulesExt: ['.css', '.scss', '.sass']
+          }
+        }),
       ],
       absWorkingDir: process.cwd(),
     });
@@ -108,6 +43,83 @@ async function buildWithPluginOnDisk(files) {
     await fs.rm(tempDir, { recursive: true, force: true });
   }
 }
+
+describe('changeStyleNameToClassName', () => {
+  const modulesMap = {
+    container: 'container_h_1',
+    title: 'title_h_2',
+    'is-active': 'is-active_h_3',
+  };
+
+  it('должен заменять простой styleName на вызов хелпера', () => {
+    const source = `const C = () => <div styleName="container" />;`;
+    // ОЖИДАНИЕ: всегда используется хелпер
+    const expected = `const C = () => <div className={[_styleNameHelper(STYLES, "container")].filter(Boolean).join(" ")}/>;`;
+    
+    const tsTree = ast(source);
+    const { transformedTree, needsHelper } = changeStyleNameToClassName(tsTree, modulesMap);
+    
+    expect(needsHelper).toBe(true);
+    expect(normalize(print(transformedTree))).toBe(normalize(expected));
+  });
+
+  it('должен объединять вызов хелпера с существующим статическим className', () => {
+    const source = `const C = () => <div className="existing" styleName="container title" />;`;
+    // ОЖИДАНИЕ: "existing" остается строкой, а styleName превращается в вызов хелпера
+    const expected = `const C = () => <div className={["existing", _styleNameHelper(STYLES, "container title")].filter(Boolean).join(" ")}/>;`;
+
+    const tsTree = ast(source);
+    const { transformedTree } = changeStyleNameToClassName(tsTree, modulesMap);
+
+    expect(normalize(print(transformedTree))).toBe(normalize(expected));
+  });
+
+  it('должен объединять вызов хелпера с существующим динамическим className', () => {
+    const source = `const C = () => <div className={getClasses()} styleName="container" />;`;
+    // ОЖИДАНИЕ: getClasses() остается, а styleName превращается в вызов хелпера
+    const expected = `const C = () => <div className={[getClasses(), _styleNameHelper(STYLES, "container")].filter(Boolean).join(" ")}/>;`;
+    
+    const tsTree = ast(source);
+    const { transformedTree } = changeStyleNameToClassName(tsTree, modulesMap);
+    
+    expect(normalize(print(transformedTree))).toBe(normalize(expected));
+  });
+
+  it('должен создавать хелпер для динамического styleName', () => {
+    const source = `const C = () => <div styleName={isActive ? 'is-active' : ''} />;`;
+    // ОЖИДАНИЕ: хелпер вызывается с динамическим выражением
+    const expected = `const C = () => <div className={[_styleNameHelper(STYLES, isActive ? 'is-active' : '')].filter(Boolean).join(" ")}/>;`;
+    
+    const tsTree = ast(source);
+    const { transformedTree, needsHelper } = changeStyleNameToClassName(tsTree, modulesMap);
+    
+    expect(needsHelper).toBe(true);
+    // Проверяем имя хелпера
+    expect(normalize(print(transformedTree))).toContain(normalize('_styleNameHelper'));
+    expect(normalize(print(transformedTree))).toBe(normalize(expected));
+  });
+
+  it('должен объединять динамический styleName и динамический className', () => {
+    const source = `const C = () => <div className={getClasses()} styleName={isActive ? 'is-active' : ''} />;`;
+    const expected = `const C = () => <div className={[getClasses(), _styleNameHelper(STYLES, isActive ? 'is-active' : '')].filter(Boolean).join(" ")}/>;`;
+
+    const tsTree = ast(source);
+    const { transformedTree, needsHelper } = changeStyleNameToClassName(tsTree, modulesMap);
+
+    expect(needsHelper).toBe(true);
+    expect(normalize(print(transformedTree))).toBe(normalize(expected));
+  });
+
+  it('должен преобразовывать импорт стилей в side-effect import', () => {
+    const source = `import styles from './style.css';\nconst C = () => <div styleName="container" />;`;
+    
+    const finalTree = ast(source);
+    const result = changeStyleNameToClassName(finalTree, modulesMap);
+
+    expect(print(result.transformedTree).trim()).toContain(`import './style.css';`);
+    expect(print(result.transformedTree).trim()).not.toContain(`import styles from`);
+  });
+});
 
 describe('styleMagicPlugin Integration Tests', () => {
   it('должен трансформировать один компонент и внедрить его стили', async () => {
@@ -122,10 +134,11 @@ describe('styleMagicPlugin Integration Tests', () => {
     };
 
     const output = await buildWithPluginOnDisk(files);
-
-    expect(output).toMatch(/className:\s*".*title.*"/);
-
-    expect(output).not.toContain('styleName');
+    
+    expect(output).toMatch(/className: \[\s*_styleNameHelper\(STYLES, "title"\)\s*\]/);
+    
+    expect(output).not.toContain('styleName:');
+    
     expect(output).toContain('style.textContent = `');
     expect(output).toContain('._title');
   });
@@ -154,11 +167,10 @@ describe('styleMagicPlugin Integration Tests', () => {
 
     const output = await buildWithPluginOnDisk(files);
     
-    expect(output).toMatch(/className:\s*".*app-container.*"/);
-    expect(output).toMatch(/className:\s*".*comp-title.*"/);
+    expect(output).toMatch(/_styleNameHelper\w*\(STYLES\w*, "app-container"\)/);
+    expect(output).toMatch(/_styleNameHelper\w*\(STYLES\w*, "comp-title"\)/);
     
     expect(output).toContain('._app-container');
     expect(output).toContain('._comp-title');
   });
-
 });

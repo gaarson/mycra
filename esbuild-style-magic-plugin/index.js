@@ -1,4 +1,4 @@
-import { promises as fs, readFileSync } from 'fs';
+import { promises as fs, readFileSync, existsSync } from 'fs';
 import path from 'path';
 import postcss from 'postcss';
 import cssModules from 'postcss-modules';
@@ -9,6 +9,48 @@ import { fileURLToPath, pathToFileURL } from 'url';
 import { ast, print, map, query } from '@phenomnomnominal/tsquery';
 
 import dir from '../config/paths.js';
+
+const styleNameRuntimeHelper = `
+const _styleNameHelper = (styles, classNames) => {
+  if (!classNames || typeof classNames !== 'string') return '';
+  return classNames.trim().split(/\\s+/).map(name => styles[name] || name).join(' ');
+};
+`;
+
+const sepTilde = `${path.sep}~`
+
+function resolveImport(pathname, ext) {
+  if (ext) {
+    let filename = pathname + ext
+    if (existsSync(filename)) {
+      return filename
+    }
+    const index = filename.lastIndexOf(path.sep)
+    filename = index >= 0 ? filename.slice(0, index) + path.sep + '_' + filename.slice(index + 1) : '_' + filename
+    if (existsSync(filename)) {
+      return filename
+    }
+    return null
+  } else {
+    if (!existsSync(path.dirname(pathname))) {
+      return null
+    }
+    return resolveImport(pathname, '.scss')
+      || resolveImport(pathname, '.css')
+      || resolveImport(pathname, '.sass')
+      || resolveImport(pathname + path.sep + 'index')
+  }
+}
+
+function resolveRelativeImport(loadPath, filename) {
+  const absolute = path.resolve(loadPath, filename)
+  const pathParts = path.parse(absolute)
+  if (/\.(s[ac]ss|css)$/.test(pathParts.ext)) {
+    return resolveImport(pathParts.dir + path.sep + pathParts.name, pathParts.ext)
+  } else {
+    return resolveImport(absolute)
+  }
+}
 
 export const getModule = async (moduleName, checkFunc) => {
   try {
@@ -24,16 +66,32 @@ export const getModule = async (moduleName, checkFunc) => {
   }
 };
 
+function getFileFormat(filePath) {
+  const ext = path.extname(filePath).slice(1);
+
+  if (ext.toLowerCase().startsWith('jpg') 
+    || ext.toLowerCase().startsWith('jpeg') 
+    || ext.toLowerCase().startsWith('png')) return 'image';
+  if (ext.toLowerCase().startsWith('ttg') 
+    || ext.toLowerCase().startsWith('otf') 
+    || ext.toLowerCase().startsWith('woff2') 
+    || ext.toLowerCase().startsWith('woff')) return 'font';
+
+  if (ext.toLowerCase().startsWith('gif')) return 'image/gif';
+  if (ext.toLowerCase().startsWith('eot')) return 'application/vnd.ms-fontobject';
+  if (ext.toLowerCase().startsWith('svg')) return 'svg+xml';
+
+  return null; 
+}
+
 async function extractAndEmbedUrls(css, basedir) {
   const ast = csstree.parse(css);
   const urlNodesToProcess = [];
 
   csstree.walk(ast, (node) => {
-    // Проверяем, что это узел Url и его значение - это строка
     if (node.type === 'Url' && typeof node.value === 'string') {
-      const urlValue = node.value; // Просто берем значение как есть
+      const urlValue = node.value; 
       
-      // Если это относительный путь, добавляем в очередь
       if (urlValue.startsWith('./') || urlValue.startsWith('../')) {
         urlNodesToProcess.push({ node, urlValue });
       }
@@ -54,7 +112,6 @@ async function extractAndEmbedUrls(css, basedir) {
       if (format) {
         try {
           const fileData = await fs.promises.readFile(fullPath);
-          // Просто присваиваем новую строку прямо в node.value
           node.value = `data:${format};base64,${fileData.toString('base64')}`;
         } catch (err) {
           console.warn(`[style-plugin] Could not read file to embed: ${fullPath}`);
@@ -68,7 +125,7 @@ async function extractAndEmbedUrls(css, basedir) {
 function fileSyntax(filename) {
   if (filename.endsWith('.scss')) return 'scss';
   if (filename.endsWith('.css')) return 'css';
-  return 'indented'; // for .sass
+  return 'indented';
 }
 
 export const renderStyle = async (filePath, options) => {
@@ -77,7 +134,6 @@ export const renderStyle = async (filePath, options) => {
 
   if (ext === '.css') {
     const css = await fs.readFile(filePath, 'utf-8');
-    // [REFAC] Убрана закомментированная и неработающая логика с minify
     return extractAndEmbedUrls(css, basedir);
   }
 
@@ -85,31 +141,41 @@ export const renderStyle = async (filePath, options) => {
     const sassOptions = options?.sassOptions || {};
     const sass = await getModule('sass', 'compile');
     
-    // [REFAC] API sass.compile является синхронным, поэтому внутренние резолверы тоже
     const compiled = sass.compile(filePath, {
       ...sassOptions,
+      quiedDeps: true,
+      silenceDeprecations: ['import', 'global-builtin', 'color-functions'],
       importers: [{
-        canonicalize(url) {
-          if (url.startsWith('@')) {
-            const filename = path.join(dir.app, url.substring(1));
-            return pathToFileURL(filename);
+        canonicalize(url, ...rest) {
+          let filename 
+          if (url.startsWith('@'))  {
+            filename = path.join(dir.app, url.replace('@', ''))
+            const { ext } = path.parse(filename)
+            if (!ext) return new URL(pathToFileURL(filename + '.sass'));
+            return new URL(pathToFileURL(filename));
           }
-          // [REFAC] Логика разрешения `~` (node_modules) упрощена.
-          // Для более сложных случаев лучше использовать `enhanced-resolve`
-          if (url.startsWith('~')) {
-              // Note: this is a simplified node_modules resolver
-              return pathToFileURL(require.resolve(url.substring(1), { paths: [basedir] }));
+          if (url.startsWith('file://')) {
+            filename = fileURLToPath(url)
+            let joint = filename.lastIndexOf(sepTilde)
+            if (joint >= 0) {
+              filename = resolveModule(filename.slice(joint + 2), filename.slice(0, joint))
+            }
+          } else {
+            filename = decodeURI(url)
           }
-          const resolved = resolveRelativeImportSync(basedir, decodeURI(url));
-          return resolved ? pathToFileURL(resolved) : null;
+          let resolved = resolveRelativeImport(basedir, filename)
+          if (resolved) {
+            return pathToFileURL(resolved)
+          }
+          return null
         },
         load(canonicalUrl) {
-          const pathname = fileURLToPath(canonicalUrl);
-          const contents = readFileSync(pathname, 'utf8');
+          const pathname = fileURLToPath(canonicalUrl)
+          let contents = readFileSync(pathname, 'utf8')
           return {
             contents,
             syntax: fileSyntax(pathname),
-          };
+          }
         },
       }],
       syntax: fileSyntax(filePath),
@@ -144,78 +210,59 @@ export function changeStyleNameToClassName(tsTree, modulesMap) {
     );
 
     if (!styleNameAttr) {
-      return elementNode;
+      return elementNode; 
     }
+
+    needsHelper = true;
 
     const classParts = [];
 
     if (classNameAttr?.initializer) {
       if (ts.isStringLiteral(classNameAttr.initializer)) {
-        // className="static-class"
         classParts.push(classNameAttr.initializer);
       } else if (ts.isJsxExpression(classNameAttr.initializer) && classNameAttr.initializer.expression) {
-        // className={dynamicExpression}
         classParts.push(classNameAttr.initializer.expression);
       }
     }
 
-    if (styleNameAttr.initializer) {
-        if (ts.isStringLiteral(styleNameAttr.initializer)) {
-            const staticClasses = styleNameAttr.initializer.text
-              .trim()
-              .split(/\s+/)
-              .map(name => modulesMap[name] || name)
-              .join(' ');
-      
-            if (staticClasses) {
-              classParts.push(ts.factory.createStringLiteral(staticClasses));
-            }
-          } else if (ts.isJsxExpression(styleNameAttr.initializer) && styleNameAttr.initializer.expression) {
-            needsHelper = true;
-            const helperCall = ts.factory.createCallExpression(
-              ts.factory.createIdentifier('_styleNameToClassNameHelper'),
-              undefined,
-              [
-                ts.factory.createIdentifier('STYLES'),
-                styleNameAttr.initializer.expression,
-              ]
-            );
-            classParts.push(helperCall);
-          }
-    }
-    
-    if (classParts.length === 0) {
-        elementNode.attributes = ts.factory.updateJsxAttributes(elementNode.attributes, 
-            attributes.filter(attr => attr !== styleNameAttr && attr !== classNameAttr)
-        );
-        return elementNode;
-    }
-
-    let newClassNameInitializer;
-
-    if (classParts.length === 1 && ts.isStringLiteral(classParts[0])) {
-      newClassNameInitializer = classParts[0];
+    let styleNameExpression;
+    if (!styleNameAttr.initializer || ts.isStringLiteral(styleNameAttr.initializer)) {
+      styleNameExpression = styleNameAttr.initializer ?? ts.factory.createStringLiteral('');
+    } else if (ts.isJsxExpression(styleNameAttr.initializer) && styleNameAttr.initializer.expression) {
+      styleNameExpression = styleNameAttr.initializer.expression;
     } else {
-      newClassNameInitializer = ts.factory.createJsxExpression(
-        undefined,
-        ts.factory.createCallExpression(
-          ts.factory.createPropertyAccessExpression(
-            ts.factory.createCallExpression(
-              ts.factory.createPropertyAccessExpression(
-                ts.factory.createArrayLiteralExpression(classParts, true),
-                'filter'
-              ),
-              undefined,
-              [ts.factory.createIdentifier('Boolean')]
-            ),
-            'join'
-          ),
-          undefined,
-          [ts.factory.createStringLiteral(' ')]
-        )
-      );
+      styleNameExpression = ts.factory.createStringLiteral('');
     }
 
+    const helperCall = ts.factory.createCallExpression(
+      ts.factory.createIdentifier('_styleNameHelper'),
+      undefined,
+      [
+        ts.factory.createIdentifier('STYLES'), 
+        styleNameExpression
+      ]
+    );
+    classParts.push(helperCall);
+
+    const newClassNameInitializer = ts.factory.createJsxExpression(
+      undefined,
+      ts.factory.createCallExpression(
+        ts.factory.createPropertyAccessExpression(
+          ts.factory.createCallExpression(
+            ts.factory.createPropertyAccessExpression(
+              ts.factory.createArrayLiteralExpression(classParts, true), 
+              'filter'
+            ),
+            undefined,
+            [ts.factory.createIdentifier('Boolean')]
+          ),
+          'join'
+        ),
+        undefined,
+        [ts.factory.createStringLiteral(' ')]
+      )
+    );
+    
     const newClassNameAttr = ts.factory.createJsxAttribute(
       ts.factory.createIdentifier('className'),
       newClassNameInitializer
@@ -231,14 +278,13 @@ export function changeStyleNameToClassName(tsTree, modulesMap) {
     return elementNode;
   });
 
-  const treeWithoutCssImports = map(transformedTree, 'ImportDeclaration:has(StringLiteral[value=/\\.(s?css|less)$/])', (node) => {
-      node.importClause = undefined;
-      return node;
+  const finalTree = map(transformedTree, 'ImportDeclaration:has(StringLiteral[value=/\\.(s?css|less)$/])', (node) => {
+    node.importClause = undefined;
+    return node;
   });
 
-  return { transformedTree: treeWithoutCssImports, needsHelper };
+  return { transformedTree: finalTree, needsHelper };
 }
-
 export const styleMagicPlugin = (options = {}) => ({
   name: 'style-magic-plugin',
   
@@ -247,22 +293,24 @@ export const styleMagicPlugin = (options = {}) => ({
     const modulesByPath = new Map();
 
     async function processCssFile(filePath, options) {
-      // Если мы уже обрабатывали этот файл, возвращаем результат из кэша
       if (modulesByPath.has(filePath)) {
         return modulesByPath.get(filePath);
       }
 
-      const css = await renderStyle(filePath, options.renderOptions);
+      let css = await renderStyle(filePath, options.cssOptions);
       let classMap = {};
-      
-      const result = await postcss([
-        cssModules({
-          ...options.cssModulesOptions,
-          getJSON: (cssFilename, json) => {
-            classMap = json;
-          },
-        }),
-      ]).process(css, { from: filePath });
+
+      let result = { css };
+      if (options?.cssOptions?.modulesExt.includes(path.extname(filePath))) {
+        result = await postcss([
+          cssModules({
+            ...options.cssModulesOptions,
+            getJSON: (_, json) => {
+              classMap = json;
+            },
+          }),
+        ]).process(css, { from: filePath });
+      }
       
       const escapedCss = result.css.replace(/`/g, '\\`');
       const jsContent = `
@@ -296,23 +344,19 @@ export const styleMagicPlugin = (options = {}) => ({
     });
 
     build.onResolve({ filter: /.*/, namespace: styleMagicNamespace }, async (args) => {
-        // Определяем, является ли импорт пакетным (не начинается с точки или слеша)
         const isPackageImport = !args.path.startsWith('.') && !path.isAbsolute(args.path);
 
-        // В зависимости от типа импорта выбираем правильную директорию для поиска
         const resolveDir = isPackageImport
-            ? process.cwd() // Для пакетов ищем от корня проекта (где node_modules)
-            : path.dirname(args.importer); // Для относительных файлов - рядом с импортером
+            ? process.cwd() 
+            : path.dirname(args.importer); 
 
         const result = await build.resolve(args.path, {
             resolveDir: resolveDir,
             kind: args.kind,
-            // Добавим importer для большей точности
             importer: args.importer, 
         });
 
         if (result.errors.length > 0) {
-            // Оборачиваем ошибку для более ясного вывода в тестах
             return { errors: [{ text: `[plugin: style-magic-plugin] Could not resolve "${args.path}"` }] };
         }
 
@@ -376,11 +420,12 @@ export const styleMagicPlugin = (options = {}) => ({
         }
 
         const { transformedTree, needsHelper } = changeStyleNameToClassName(tsTree, componentModulesMap);
+        
         let contents = print(transformedTree);
 
         if (needsHelper) {
             const stylesVar = `const STYLES = ${JSON.stringify(componentModulesMap)};`;
-            contents = `${styleNameHelper}\n${stylesVar}\n${contents}`;
+            contents = `${styleNameRuntimeHelper}\n${stylesVar}\n${contents}`;
         }
 
         return {

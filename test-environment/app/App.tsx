@@ -9,10 +9,11 @@ import './style.css';
 
 export const App = () => {
   const countStyles = () => { return 'count' }
+  const classStyles = () => { return 'class' }
 
   return (
     <section>
-      <Img2 styleName={countStyles()} />
+      <Img2 className={classStyles()} styleName={countStyles()} />
       <div className="global-claas">a24111112</div>
       <div className="global-class" styleName="some-style"> aa HTLMWEF </div>
 
