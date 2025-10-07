@@ -4,10 +4,7 @@ import './Component.scss';
 
 import './style.css';
 
-import Svg from './assets/img.svg';
-
 export const Component = () => {
-  console.log('Svg', Svg);
   const [status, setStatus] = useState('normal');
 
   const onMouseEnter = () => {
