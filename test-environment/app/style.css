@@ -1,13 +1,17 @@
- :global .icon {
-  background-color: grey;
- }
-.count {
-  width: 10px;
+body {
+  background-color: white;
 }
- .get-mc-style {}
- .get-style {
 
- }
+:global .icon {
+  background-color: grey;
+}
+
+.count {
+  width: 100px;
+}
+
+.get-mc-style {}
+.get-style {}
 
 .some-style {
   color: blue;

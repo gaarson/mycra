@@ -1,3 +1,5 @@
+import * as React from 'react';
+
 declare global {
   interface Window {
     deps: any
@@ -20,6 +22,16 @@ declare global {
     }
   }
   const glob: glob;
+}
+
+declare module 'react' {
+  interface HTMLAttributes<T> extends React.HTMLAttributes<T> {
+    styleName?: string;
+  }
+
+  interface SVGAttributes<T> extends React.SVGAttributes<T> {
+    styleName?: string;
+  }
 }
 
 export {}
