@@ -188,12 +188,6 @@ export const renderStyle = async (filePath, options) => {
   throw new Error(`Unsupported style format: '${ext}'`);
 };
 
-const styleNameHelper = `
-const _styleNameToClassNameHelper = (styles, classNames) => {
-  if (!classNames || typeof classNames !== 'string') return '';
-  return classNames.trim().split(/\\s+/).map(name => styles[name] || name).join(' ');
-};
-`;
 export function changeStyleNameToClassName(tsTree, modulesMap) {
   let needsHelper = false;
 
@@ -332,7 +326,7 @@ export const styleMagicPlugin = (options = {}) => ({
       return processedResult;
     }
 
-    build.onResolve({ filter: /\.[jt]sx$/, namespace: 'file' }, (args) => {
+    build.onResolve({ filter: /\.[jt]sx?$/, namespace: 'file' }, (args) => {
         if (args.path.includes('node_modules')) {
             return;
         }
@@ -360,7 +354,7 @@ export const styleMagicPlugin = (options = {}) => ({
             return { errors: [{ text: `[plugin: style-magic-plugin] Could not resolve "${args.path}"` }] };
         }
 
-        if (/\.[jt]sx$/.test(result.path) && !result.path.includes('node_modules')) {
+        if (/\.[jt]sx?$/.test(result.path) && !result.path.includes('node_modules')) {
             return {
                 path: result.path,
                 namespace: styleMagicNamespace,
@@ -377,7 +371,7 @@ export const styleMagicPlugin = (options = {}) => ({
 
     build.onLoad({ filter: /.*/, namespace: styleMagicNamespace }, async (args) => {
         const sourceCode = await fs.readFile(args.path, 'utf8');
-        const loader = args.path.endsWith('tsx') ? 'tsx' : 'jsx';
+        const loader = args.path.endsWith('tsx') || args.path.endsWith('ts') ? 'tsx' : 'jsx';
 
         if (!sourceCode.toLowerCase().includes('stylename')) {
             return { contents: sourceCode, loader, resolveDir: path.dirname(args.path) };
