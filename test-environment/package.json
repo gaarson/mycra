@@ -8,7 +8,7 @@
     "build": "our-scripts build -p app -s",
     "dev-lib-server": "our-scripts start -p lib -d lib-dist",
     "dev-server": "our-scripts start -p app -ssvg -ds",
-    "dev": "our-scripts start -p app -ssvg -s",
+    "dev": "our-scripts start -p app -dts -ssvg -s",
     "test": "our-scripts test -p app"
   },
   "author": "",
@@ -21,6 +21,7 @@
   "devDependencies": {
     "@testing-library/jest-dom": "^6.2.0",
     "@testing-library/react": "^14.1.2",
+    "@types/jest": "^30.0.0",
     "react-test-renderer": "^18.2.0"
   }
 }
