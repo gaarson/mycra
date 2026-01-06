@@ -1,34 +1,41 @@
 import React from 'react';
-import renderer from 'react-test-renderer';
-import {cleanup, fireEvent, render} from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
+// Импортируем компонент. Кстати, лучше переименовать файл теста в Component.test.tsx,
+// раз мы тестируем именно его, но пока оставим как есть.
 import { Component } from './Component';
 
-it('some tests', () => {
-  const component = renderer.create(
-    <Component />,
-  );
-  const {getByText} = render(
-    <Component />,
-  );
-  let tree = component.toJSON();
-  expect(tree).toMatchSnapshot();
+describe('Component behavior', () => {
+  it('renders correctly and handles hover states', () => {
+    // 1. Render: Рендерим компонент в JSDOM
+    const { asFragment } = render(<Component />);
 
-  // manually trigger the callback
-  renderer.act(() => {
-    tree.props.onMouseEnter();
-  });
-  // re-rendering
-  tree = component.toJSON();
-  expect(tree).toMatchSnapshot();
+    // Проверяем, что компонент вообще отрисовался.
+    // У твоего <article> есть неявная role="article". Это лучший способ поиска (a11y).
+    const articleElement = screen.getByRole('article');
+    
+    // Ищем текст внутри, чтобы убедиться, что дети (children) на месте
+    expect(screen.getByText(/po/i)).toBeInTheDocument();
+    expect(screen.getByText(/pik/i)).toBeInTheDocument();
 
-  // manually trigger the callback
-  renderer.act(() => {
-    tree.props.onMouseLeave();
+    // 2. Initial State Assertion: Проверяем начальный класс
+    // В Component.tsx у тебя const [status, setStatus] = useState('normal');
+    expect(articleElement).toHaveClass('normal');
+    expect(articleElement).not.toHaveClass('hovered');
+
+    // Снимаем snapshot начального состояния (опционально, но полезно для CSS структуры)
+    expect(asFragment()).toMatchSnapshot();
+
+    // 3. Interaction: Наводим мышку (MouseEnter)
+    fireEvent.mouseEnter(articleElement);
+
+    // 4. Update Assertion: Проверяем, что класс изменился на 'hovered'
+    expect(articleElement).toHaveClass('hovered');
+    expect(articleElement).not.toHaveClass('normal');
+
+    // 5. Interaction: Убираем мышку (MouseLeave)
+    fireEvent.mouseLeave(articleElement);
+
+    // 6. Final Assertion: Проверяем, что класс вернулся в 'normal'
+    expect(articleElement).toHaveClass('normal');
   });
-  // re-rendering
-  tree = component.toJSON();
-  expect(tree).toMatchSnapshot();
-  
-  console.log(getByText('po'));
-  // expect(getByText(/pupik/i)).toBeTruthy();
 });

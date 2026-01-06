@@ -13,10 +13,11 @@
     "emitDecoratorMetadata": true,
     "downlevelIteration": true,
     "module": "esNext",
-    "target": "es6",
-    "jsx": "preserve",
+    "target": "es2015",
+    "jsx": "react-jsx",
+    "types": ["types/custom.d.ts", "types/global.d.ts"],
     "paths": { "@/*": ["app/*"] }
   },
   "exclude": ["node_modules"],
-  "include": ["app", "editor-src", "types/custom.d.ts", "types/global.d.ts"]
+  "include": ["app/*/**.ts"]
 }
