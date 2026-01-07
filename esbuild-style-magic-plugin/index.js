@@ -1,21 +1,13 @@
-import { promises as fs, readFileSync, existsSync } from 'fs';
+import { promises as fs, readFileSync } from 'fs';
+import { pathToFileURL, fileURLToPath } from 'url';
 import path from 'path';
 import postcss from 'postcss';
 import cssModules from 'postcss-modules';
 import ts from 'typescript';
 import * as csstree from 'css-tree';
-import { fileURLToPath, pathToFileURL } from 'url';
-
 import { ast, print, map, query } from '@phenomnomnominal/tsquery';
 
 import dir from '../config/paths.js';
-
-const styleNameRuntimeHelper = `
-const _styleNameHelper = (styles, classNames) => {
-  if (!classNames || typeof classNames !== 'string') return '';
-  return classNames.trim().split(/\\s+/).map(name => styles[name] || name).join(' ');
-};
-`;
 
 const sepTilde = `${path.sep}~`
 
@@ -279,18 +271,19 @@ export function changeStyleNameToClassName(tsTree, modulesMap) {
 
   return { transformedTree: finalTree, needsHelper };
 }
+
+const styleNameRuntimeHelper = `
+const _styleNameHelper = (styles, classNames) => {
+  if (!classNames || typeof classNames !== 'string') return '';
+  return classNames.trim().split(/\\s+/).map(name => styles[name] || name).join(' ');
+};
+`;
+
 export const styleMagicPlugin = (options = {}) => ({
   name: 'style-magic-plugin',
-  
+
   setup(build) {
-    const styleMagicNamespace = 'style-magic-ns';
-    const modulesByPath = new Map();
-
     async function processCssFile(filePath, options) {
-      if (modulesByPath.has(filePath)) {
-        return modulesByPath.get(filePath);
-      }
-
       let css = await renderStyle(filePath, options.cssOptions);
       let classMap = {};
 
@@ -305,7 +298,7 @@ export const styleMagicPlugin = (options = {}) => ({
           }),
         ]).process(css, { from: filePath });
       }
-      
+
       const escapedCss = result.css.replace(/`/g, '\\`');
       const jsContent = `
         if (typeof document !== 'undefined') {
@@ -319,99 +312,33 @@ export const styleMagicPlugin = (options = {}) => ({
         }
         export default ${JSON.stringify(classMap)};
       `;
-      
-      const processedResult = { classMap, jsContent };
-      modulesByPath.set(filePath, processedResult);
-      
-      return processedResult;
+
+      return { classMap, jsContent };
     }
-
-    build.onResolve({ filter: /\.[jt]sx?$/, namespace: 'file' }, (args) => {
-        if (args.path.includes('node_modules')) {
-            return;
-        }
-
-        return {
-            path: path.resolve(args.resolveDir, args.path),
-            namespace: styleMagicNamespace,
-        };
-    });
-
-    build.onResolve({ filter: /.*/, namespace: styleMagicNamespace }, async (args) => {
-        const cleanImporter = args.importer.startsWith(styleMagicNamespace + ':')
-            ? args.importer.slice(styleMagicNamespace.length + 1)
-            : args.importer;
-
-        const resolveDir = cleanImporter 
-            ? path.dirname(cleanImporter) 
-            : process.cwd();
-
-        const result = await build.resolve(args.path, {
-            resolveDir: resolveDir,
-            kind: args.kind,
-        });
-
-        if (result.errors.length > 0) {
-            return { errors: result.errors };
-        }
-
-        if (/\.[jt]sx$/.test(result.path) && !result.path.includes('node_modules')) {
-            return {
-                path: result.path,
-                namespace: styleMagicNamespace,
-            };
-        }
-
-        return { path: result.path, external: result.external };
-    });
-
-//     build.onResolve({ filter: /.*/, namespace: styleMagicNamespace }, async (args) => {
-//         const cleanImporter = args.importer.startsWith(styleMagicNamespace + ':')
-//             ? args.importer.slice(styleMagicNamespace.length + 1)
-//             : args.importer;
-
-//         const resolveDir = args.resolveDir 
-//             ? args.resolveDir 
-//             : (cleanImporter ? path.dirname(cleanImporter) : process.cwd());
-
-//         const result = await build.resolve(args.path, {
-//             resolveDir: resolveDir,
-//             kind: args.kind,
-//         });
-//         if (result.errors.length > 0) {
-//             return { errors: [{ text: `[plugin: style-magic-plugin] Could not resolve "${args.path}"` }] };
-//         }
-
-//         if (/\.[jt]sx?$/.test(result.path) && !result.path.includes('node_modules')) {
-//             return {
-//                 path: result.path,
-//                 namespace: styleMagicNamespace,
-//             };
-//         }
-        
-//         return { path: result.path, external: result.external };
-//     });
 
     build.onLoad({ filter: /\.(s[ac]ss|css)$/ }, async (args) => {
         const { jsContent } = await processCssFile(args.path, options);
         return { contents: jsContent, loader: 'js' };
     });
 
-    build.onLoad({ filter: /.*/, namespace: styleMagicNamespace }, async (args) => {
-        const sourceCode = await fs.readFile(args.path, 'utf8');
-        const loader = args.path.endsWith('tsx') || args.path.endsWith('ts') ? 'tsx' : 'jsx';
+    build.onLoad({ filter: /\.(tsx|jsx)$/ }, async (args) => {
+        if (args.path.includes('node_modules')) {
+            return null;
+        }
 
-        if (!sourceCode.toLowerCase().includes('stylename')) {
-            return { 
-              contents: sourceCode, loader, resolveDir: path.dirname(args.path), watchFiles: [args.path]
-            };
+        const sourceCode = await fs.readFile(args.path, 'utf8');
+        const loader = args.path.endsWith('tsx') ? 'tsx' : 'jsx';
+
+        if (!sourceCode.includes('styleName')) {
+            return { contents: sourceCode, loader }; 
         }
 
         const tsTree = ast(sourceCode, args.path);
+        
         const styleImports = query(tsTree, 'ImportDeclaration:has(StringLiteral[value=/\\.(s?css|less)$/])');
 
         if (styleImports.length === 0) {
-            return { contents: sourceCode, loader, resolveDir: path.dirname(args.path), watchFiles: [args.path] };
+            return { contents: sourceCode, loader };
         }
 
         const resolvePromises = styleImports.map(node => {
@@ -430,9 +357,9 @@ export const styleMagicPlugin = (options = {}) => ({
                 return processCssFile(result.path, options);
             }
         });
-        
+
         const processedCssFiles = await Promise.all(processPromises);
-        
+
         for (const result of processedCssFiles) {
             if (result && result.classMap) {
                 Object.assign(componentModulesMap, result.classMap);
@@ -440,11 +367,11 @@ export const styleMagicPlugin = (options = {}) => ({
         }
 
         if (Object.keys(componentModulesMap).length === 0) {
-            return { contents: sourceCode, loader, resolveDir: path.dirname(args.path), watchFiles: [args.path] };
+            return { contents: sourceCode, loader };
         }
 
         const { transformedTree, needsHelper } = changeStyleNameToClassName(tsTree, componentModulesMap);
-        
+
         let contents = print(transformedTree);
 
         if (needsHelper) {
@@ -455,8 +382,7 @@ export const styleMagicPlugin = (options = {}) => ({
         return {
             contents,
             loader,
-            resolveDir: path.dirname(args.path),
-            watchFiles: [args.path]
+            resolveDir: path.dirname(args.path), 
         };
     });
   }
