@@ -1,23 +1,27 @@
 {
   "compilerOptions": {
     "baseUrl": "./",
-    "outDir": "./dist/",
+    "outDir": "dist",
     "sourceMap": true,
     "noImplicitAny": false,
     "esModuleInterop": true,
+    "jsx": "react-jsx",
     "moduleResolution": "node",
-    "resolveJsonModule": true,
     "allowSyntheticDefaultImports": true,
-    "lib": ["ESNext", "dom"],
+    "lib": ["dom"],
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "declaration": true,
     "downlevelIteration": true,
     "module": "esNext",
     "target": "es2015",
-    "jsx": "react-jsx",
-    "types": ["types/custom.d.ts", "types/global.d.ts"],
-    "paths": { "@/*": ["app/*"] }
+    "types": ["jest", "node", "./types/custom.d.ts", "./types/global.d.ts"],
+    "skipLibCheck": true,
+    "paths": {
+      "@/*": ["app/*"],
+    }
   },
-  "exclude": ["node_modules"],
-  "include": ["app/*/**.ts"]
+  "include": ["dist/*/**.d.ts", "app/*/**.ts"],
+  "exclude": ["node_modules"]
 }
+

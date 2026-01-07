@@ -7,6 +7,7 @@ import './style.sass';
 import './style.scss';
 
 const container = document.getElementById('root');
+
 const root = ReactDOMClient.createRoot(container);
 
 root.render(<App />);

@@ -38,7 +38,8 @@ export default {
     // '[/\\\\]node_modules[/\\\\].+\\.(js|jsx|ts|tsx)$',
   ],
   transform: process.env.MYCRA_TEST_SELF ? {} : {
-    '^.+\\.(ts|js|jsx|tsx)$': require.resolve('esbuild-runner/jest.js'),
+    // '^.+\\.(ts|js|jsx|tsx)$': require.resolve('esbuild-runner/jest.js'),
+    '^.+\\.(ts|js|jsx|tsx)$': `${path.join(__dirname, '/config')}/jest/transformer.js`,
     '^.+\\.svg$': require.resolve('jest-transformer-svg'),
     '^.+\\.css$': `${path.join(__dirname, '/config')}/jest/css.js`,
     '^.+\?raw$': `${path.join(__dirname, '/config')}/jest/css.js`,
