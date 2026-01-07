@@ -342,16 +342,17 @@ export const styleMagicPlugin = (options = {}) => ({
             ? args.importer.slice(styleMagicNamespace.length + 1)
             : args.importer;
 
-        const resolveDir = args.resolveDir 
-            ? args.resolveDir 
-            : (cleanImporter ? path.dirname(cleanImporter) : process.cwd());
+        const resolveDir = cleanImporter 
+            ? path.dirname(cleanImporter) 
+            : process.cwd();
 
         const result = await build.resolve(args.path, {
             resolveDir: resolveDir,
             kind: args.kind,
         });
+
         if (result.errors.length > 0) {
-            return { errors: [{ text: `[plugin: style-magic-plugin] Could not resolve "${args.path}"` }] };
+            return { errors: result.errors };
         }
 
         if (/\.[jt]sx?$/.test(result.path) && !result.path.includes('node_modules')) {
@@ -360,9 +361,36 @@ export const styleMagicPlugin = (options = {}) => ({
                 namespace: styleMagicNamespace,
             };
         }
-        
+
         return { path: result.path, external: result.external };
     });
+
+//     build.onResolve({ filter: /.*/, namespace: styleMagicNamespace }, async (args) => {
+//         const cleanImporter = args.importer.startsWith(styleMagicNamespace + ':')
+//             ? args.importer.slice(styleMagicNamespace.length + 1)
+//             : args.importer;
+
+//         const resolveDir = args.resolveDir 
+//             ? args.resolveDir 
+//             : (cleanImporter ? path.dirname(cleanImporter) : process.cwd());
+
+//         const result = await build.resolve(args.path, {
+//             resolveDir: resolveDir,
+//             kind: args.kind,
+//         });
+//         if (result.errors.length > 0) {
+//             return { errors: [{ text: `[plugin: style-magic-plugin] Could not resolve "${args.path}"` }] };
+//         }
+
+//         if (/\.[jt]sx?$/.test(result.path) && !result.path.includes('node_modules')) {
+//             return {
+//                 path: result.path,
+//                 namespace: styleMagicNamespace,
+//             };
+//         }
+        
+//         return { path: result.path, external: result.external };
+//     });
 
     build.onLoad({ filter: /\.(s[ac]ss|css)$/ }, async (args) => {
         const { jsContent } = await processCssFile(args.path, options);

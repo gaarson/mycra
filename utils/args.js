@@ -16,7 +16,6 @@ const argsDefinitions = [
   { name: 'includeModules', alias: 'im', type: String, default: undefined },
   { name: 'allowOverwrite', alias: 'ao', type: Boolean, default: false },
   { name: 'excludeModules', alias: 'em', type: Boolean },
-  { name: 'splitSvg', type: Boolean, alias: 'ssvg',  default: false },
   { name: 'babel', alias: 'b', type: String, default: '' },
   { name: 'template', type: String, alias: 't', default: 'index.html' },
 ];

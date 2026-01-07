@@ -37,7 +37,7 @@ export const getPlugins = async (scopeGenerator) => {
       })
     ] : []),
     time(),
-    mySvg(dir.app, dir.dist, args.splitSvg),
+    mySvg(dir.app, dir.dist),
     polyfillNode(),
     envFilePlugin,
   ]

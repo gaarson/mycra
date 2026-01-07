@@ -11,6 +11,7 @@ export const App = () => {
   const classStyles = () => { return 'class' }
 
   return (
+
     <section>
       <Img2 className={classStyles()} styleName={countStyles()} />
       <div className="global-claas">12aaaaa12</div>

@@ -7,8 +7,8 @@
   "scripts": {
     "build": "our-scripts build -p app -s",
     "dev-lib-server": "our-scripts start -p lib -d lib-dist",
-    "dev-server": "our-scripts start -p app -ssvg -ds",
-    "dev": "our-scripts start -p app -dts -ssvg -s",
+    "dev-server": "our-scripts start -p app -ds",
+    "dev": "our-scripts start -p app -dts -s",
     "test": "our-scripts test -p app"
   },
   "author": "",
