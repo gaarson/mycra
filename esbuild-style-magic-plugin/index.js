@@ -355,7 +355,7 @@ export const styleMagicPlugin = (options = {}) => ({
             return { errors: result.errors };
         }
 
-        if (/\.[jt]sx?$/.test(result.path) && !result.path.includes('node_modules')) {
+        if (/\.[jt]sx$/.test(result.path) && !result.path.includes('node_modules')) {
             return {
                 path: result.path,
                 namespace: styleMagicNamespace,
