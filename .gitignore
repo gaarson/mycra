@@ -25,6 +25,7 @@ __snapshots__
 
 docs.md
 /docs_assets
+.e-va-conf
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

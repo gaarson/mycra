@@ -19,8 +19,8 @@ if (args['source-map']) {
 } else {
   devtool = buildMode.isDevelop() ? devtoolDev : undefined;
 }
-
-const baseFileName = '[name].[hash]';
+const isDev = buildMode.isDevelop();
+const baseFileName = isDev ? '[name]' : '[name].[hash]';
 
 const includeModules = args.includeModules ? args.includeModules.split(',').reduce((prev, curr) => {
   if (curr.indexOf(':') !== -1) {
@@ -110,8 +110,8 @@ export const getConfig = async () => {
       'glob': `{ "env": ${JSON.stringify(env)} }`,
       'global': 'window',
     },
-    assetNames: `assets/${baseFileName}`,
-    chunkNames: entry.length > 1 ? `chunks/[hash].[name]` : baseFileName,
+    assetNames: isDev ? 'assets/[name]' : `assets/${baseFileName}`,
+    chunkNames: entry.length > 1 ? (isDev ? 'chunks/[name]' : 'chunks/[hash].[name]') : baseFileName,
     entryNames: entry.length > 1 ? `[dir]/[name]` : baseFileName,
     allowOverwrite: args.allowOverwrite,
     minify: buildMode.type === 'production' ? true : false,
